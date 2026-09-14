@@ -1,35 +1,226 @@
-import { Link2, Sparkles, CheckCircle2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Toaster, toast } from 'sonner'
+import { Header } from '@/components/Header'
+import { TaxonomyRules } from '@/components/TaxonomyRules'
+import { UtmBuilder } from '@/components/UtmBuilder'
+import { LinksTable } from '@/components/LinksTable'
+import { ProjectModal } from '@/components/ProjectModal'
+import { EditLinkModal } from '@/components/EditLinkModal'
+import { ExportModal } from '@/components/ExportModal'
+import {
+  getProjects,
+  saveProject,
+  getActiveProjectId,
+  setActiveProjectId,
+  getLinks,
+  saveLink,
+  updateLink,
+  deleteLink,
+  isEditorAuthenticated,
+  logoutEditor,
+} from '@/lib/storage'
+import type { Project, UtmLink } from '@/types'
 
 export function App() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [activeProjectId, setActiveId] = useState<string>('')
+  const [links, setLinks] = useState<UtmLink[]>([])
+  const [isEditor, setIsEditor] = useState<boolean>(false)
+
+  // Modais
+  const [projectModalOpen, setProjectModalOpen] = useState(false)
+  const [exportModalOpen, setExportModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [linkToEdit, setLinkToEdit] = useState<UtmLink | null>(null)
+
+  // Preset clicado no Guia de Taxonomia
+  const [presetSourceMedium, setPresetSourceMedium] = useState<{ source: string; medium: string } | null>(null)
+
+  // Carrega dados iniciais
+  const refreshData = useCallback(() => {
+    const loadedProjects = getProjects()
+    setProjects(loadedProjects)
+
+    let currentActiveId = getActiveProjectId()
+    if (!currentActiveId && loadedProjects.length > 0) {
+      currentActiveId = loadedProjects[0].id
+      setActiveProjectId(currentActiveId)
+    }
+    setActiveId(currentActiveId)
+
+    const loadedLinks = getLinks(currentActiveId)
+    setLinks(loadedLinks)
+    setIsEditor(isEditorAuthenticated())
+  }, [])
+
+  useEffect(() => {
+    refreshData()
+  }, [refreshData])
+
+  // Recarrega links ao mudar o projeto ativo
+  const handleSelectProject = (id: string) => {
+    setActiveProjectId(id)
+    setActiveId(id)
+    const projLinks = getLinks(id)
+    setLinks(projLinks)
+    const proj = projects.find((p) => p.id === id)
+    if (proj) {
+      toast.info(`Projeto ativo alterado para "${proj.name}"`)
+    }
+  }
+
+  // Cria novo projeto
+  const handleSaveProject = (name: string, description?: string) => {
+    const newProj = saveProject(name, description)
+    toast.success(`Projeto "${newProj.name}" criado com sucesso!`)
+    refreshData()
+  }
+
+  // Salva novo link
+  const handleSaveLink = (linkData: Omit<UtmLink, 'id' | 'createdAt' | 'updatedAt'>) => {
+    saveLink(linkData)
+    toast.success('Link UTM gerado e salvo no banco do projeto!')
+    setLinks(getLinks(activeProjectId))
+  }
+
+  // Abre modal de edição
+  const handleOpenEditLink = (link: UtmLink) => {
+    setLinkToEdit(link)
+    setEditModalOpen(true)
+  }
+
+  // Atualiza link existente
+  const handleUpdateLink = (id: string, updates: Partial<UtmLink>) => {
+    const updated = updateLink(id, updates)
+    if (updated) {
+      toast.success('Link atualizado com sucesso!')
+      setLinks(getLinks(activeProjectId))
+    }
+  }
+
+  // Exclui link
+  const handleDeleteLink = (id: string) => {
+    if (!isEditor) {
+      setLinkToEdit(links.find((l) => l.id === id) || null)
+      setEditModalOpen(true)
+      return
+    }
+
+    if (window.confirm('Tem certeza de que deseja excluir este link rastreável?')) {
+      deleteLink(id)
+      toast.success('Link removido do projeto.')
+      setLinks(getLinks(activeProjectId))
+    }
+  }
+
+  // Alterna Modo Editor
+  const handleToggleEditorMode = () => {
+    if (isEditor) {
+      logoutEditor()
+      setIsEditor(false)
+      toast.info('Modo Editor encerrado. Sistema em modo leitura e cópia.')
+    } else {
+      setLinkToEdit(null)
+      setEditModalOpen(true)
+    }
+  }
+
+  const activeProject = projects.find((p) => p.id === activeProjectId)
+
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center p-6">
-      <div className="max-w-xl w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center space-y-6">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 mb-2">
-          <Link2 className="w-8 h-8" />
-        </div>
-        
-        <div className="space-y-2">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Setup Concluído com Sucesso
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Gerador de Links UTM
-          </h1>
-          <p className="text-sm text-slate-500 font-medium">
-            Itaipu Parquetec — Comunicação & Marketing
-          </p>
-        </div>
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans antialiased">
+      {/* Sistema de Toasts Sonner */}
+      <Toaster position="top-right" richColors closeButton />
 
-        <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-4 border border-slate-100">
-          Ambiente local configurado com <strong>Vite</strong>, <strong>React</strong>, <strong>TypeScript</strong>, <strong>Tailwind CSS</strong> e <strong>Lucide Icons</strong>. Pronto para o desenvolvimento da Interface (Etapa 4).
-        </p>
+      {/* Header Institucional */}
+      <Header
+        projects={projects}
+        activeProject={activeProject}
+        onSelectProject={handleSelectProject}
+        onOpenNewProjectModal={() => setProjectModalOpen(true)}
+        onOpenExportModal={() => setExportModalOpen(true)}
+        isEditor={isEditor}
+        onToggleEditorMode={handleToggleEditorMode}
+        linksCount={links.length}
+      />
 
-        <div className="pt-2 flex items-center justify-center gap-2 text-xs text-slate-400">
-          <Sparkles className="w-4 h-4 text-blue-500" />
-          <span>Etapa 3 de 8 concluída com sucesso</span>
+      {/* Conteúdo Principal */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Banner do Guia de Taxonomia (Para Conteúdo & Mídia) */}
+        <TaxonomyRules
+          onApplyPreset={(source, medium) => {
+            setPresetSourceMedium({ source, medium })
+            toast.info(`Preenchido: Origem (${source}) e Mídia (${medium})`)
+          }}
+        />
+
+        {/* Grid: Gerador + Banco de Links */}
+        <div className="space-y-6">
+          {/* Construtor de UTMs */}
+          <UtmBuilder
+            activeProject={activeProject}
+            onSaveLink={handleSaveLink}
+            presetSourceMedium={presetSourceMedium}
+          />
+
+          {/* Banco e Histórico de Links */}
+          <LinksTable
+            project={activeProject}
+            links={links}
+            isEditor={isEditor}
+            onEditLink={handleOpenEditLink}
+            onDeleteLink={handleDeleteLink}
+            onOpenExportModal={() => setExportModalOpen(true)}
+          />
         </div>
-      </div>
-    </main>
+      </main>
+
+      {/* Rodapé Acessível */}
+      <footer className="border-t border-slate-200 bg-white py-6 text-xs text-slate-500 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <span className="font-semibold text-slate-700">Gerador de Links UTM — Itaipu Parquetec</span>
+            <p className="text-[11px] text-slate-400">
+              Ambiente Localhost • Padrão WCAG 2.1 AA • Taxonomia Oficial GA4
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-[11px] text-slate-500">
+            <span>
+              Status:{' '}
+              <strong className="text-emerald-600 font-medium">● Local Storage Ativo</strong>
+            </span>
+            <span>•</span>
+            <span>Chave de Edição: <code>parquetec2026</code></span>
+          </div>
+        </div>
+      </footer>
+
+      {/* Modais do Sistema */}
+      <ProjectModal
+        open={projectModalOpen}
+        onOpenChange={setProjectModalOpen}
+        onSaveProject={handleSaveProject}
+      />
+
+      <EditLinkModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        linkToEdit={linkToEdit}
+        isEditor={isEditor}
+        onAuthenticatedEditor={() => {
+          setIsEditor(true)
+          toast.success('Modo Editor desbloqueado com sucesso!')
+        }}
+        onUpdateLink={handleUpdateLink}
+      />
+
+      <ExportModal
+        open={exportModalOpen}
+        onOpenChange={setExportModalOpen}
+        project={activeProject}
+        links={links}
+      />
+    </div>
   )
 }
 
