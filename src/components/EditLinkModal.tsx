@@ -6,6 +6,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { buildUtmUrl, sanitizeUtmParam } from '@/lib/utm-sanitizer'
 import { verifyEditorKey } from '@/lib/storage'
+import {
+  STANDARD_CANAIS,
+  STANDARD_SOURCES,
+  STANDARD_MEDIUMS,
+  STANDARD_PAISES,
+} from '@/components/UtmBuilder'
 import type { UtmLink } from '@/types'
 
 interface EditLinkModalProps {
@@ -30,11 +36,11 @@ export function EditLinkModal({
 
   // 9 Parâmetros de Edição
   const [urlDestino, setUrlDestino] = useState('')
-  const [pais, setPais] = useState('')
-  const [canal, setCanal] = useState('')
+  const [pais, setPais] = useState('BR')
+  const [canal, setCanal] = useState('Social')
   const [produto, setProduto] = useState('')
-  const [source, setSource] = useState('')
-  const [medium, setMedium] = useState('')
+  const [source, setSource] = useState('instagram')
+  const [medium, setMedium] = useState('stories')
   const [macroEstrategia, setMacroEstrategia] = useState('')
   const [identifier, setIdentifier] = useState('')
   const [microEstrategia, setMicroEstrategia] = useState('')
@@ -46,8 +52,8 @@ export function EditLinkModal({
       setPais(linkToEdit.pais || 'BR')
       setCanal(linkToEdit.canal || 'Social')
       setProduto(linkToEdit.produto || '')
-      setSource(linkToEdit.source || '')
-      setMedium(linkToEdit.medium || '')
+      setSource(linkToEdit.source || 'instagram')
+      setMedium(linkToEdit.medium || 'stories')
       setMacroEstrategia(linkToEdit.macroEstrategia || '')
       setIdentifier(linkToEdit.identifier || '')
       setMicroEstrategia(linkToEdit.microEstrategia || '')
@@ -57,7 +63,6 @@ export function EditLinkModal({
     }
   }, [linkToEdit, open])
 
-  // Recalcula a URL com base nos novos parâmetros
   const calculatedUrl = buildUtmUrl({
     urlDestino,
     pais,
@@ -186,24 +191,34 @@ export function EditLinkModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div className="space-y-1">
                 <Label htmlFor="editPais">2. País</Label>
-                <Input
+                <select
                   id="editPais"
-                  type="text"
                   value={pais}
                   onChange={(e) => setPais(e.target.value)}
-                  maxLength={10}
-                />
+                  className="flex h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
+                >
+                  {STANDARD_PAISES.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-1">
                 <Label htmlFor="editCanal">3. Canal</Label>
-                <Input
+                <select
                   id="editCanal"
-                  type="text"
                   value={canal}
                   onChange={(e) => setCanal(e.target.value)}
-                  maxLength={50}
-                />
+                  className="flex h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
+                >
+                  {STANDARD_CANAIS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-1">
@@ -218,34 +233,42 @@ export function EditLinkModal({
               </div>
             </div>
 
-            {/* GRID: SOURCE & MEDIUM */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* GRID: SOURCE & MEDIUM COM LISTA SUSPENSA */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-sky-50/50 p-2.5 rounded-lg border border-sky-100">
               <div className="space-y-1">
-                <Label htmlFor="editSource" required>
+                <Label htmlFor="editSource" required className="font-bold text-sky-950">
                   5. Source
                 </Label>
-                <Input
+                <select
                   id="editSource"
-                  type="text"
                   value={source}
                   onChange={(e) => setSource(e.target.value)}
-                  maxLength={100}
-                  required
-                />
+                  className="flex h-9 w-full rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-slate-800"
+                >
+                  {STANDARD_SOURCES.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="editMedium" required>
+                <Label htmlFor="editMedium" required className="font-bold text-sky-950">
                   6. Medium
                 </Label>
-                <Input
+                <select
                   id="editMedium"
-                  type="text"
                   value={medium}
                   onChange={(e) => setMedium(e.target.value)}
-                  maxLength={100}
-                  required
-                />
+                  className="flex h-9 w-full rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-slate-800"
+                >
+                  {STANDARD_MEDIUMS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
