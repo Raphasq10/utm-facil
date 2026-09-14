@@ -33,8 +33,7 @@ export function App() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [linkToEdit, setLinkToEdit] = useState<UtmLink | null>(null)
 
-  // Preset clicado no Guia de Taxonomia
-  const [presetSourceMedium, setPresetSourceMedium] = useState<{ source: string; medium: string } | null>(null)
+
 
   // Carrega dados iniciais
   const refreshData = useCallback(() => {
@@ -147,12 +146,7 @@ export function App() {
       {/* Conteúdo Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Banner do Guia de Taxonomia (Para Conteúdo & Mídia) */}
-        <TaxonomyRules
-          onApplyPreset={(source, medium) => {
-            setPresetSourceMedium({ source, medium })
-            toast.info(`Preenchido: Origem (${source}) e Mídia (${medium})`)
-          }}
-        />
+        <TaxonomyRules />
 
         {/* Grid: Gerador + Banco de Links */}
         <div className="space-y-6">
@@ -160,7 +154,6 @@ export function App() {
           <UtmBuilder
             activeProject={activeProject}
             onSaveLink={handleSaveLink}
-            presetSourceMedium={presetSourceMedium}
           />
 
           {/* Banco e Histórico de Links */}

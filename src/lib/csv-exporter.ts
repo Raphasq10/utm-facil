@@ -1,18 +1,21 @@
 import type { Project, UtmLink } from '@/types'
 
 /**
- * Exporta os links de um projeto em formato CSV compatível com Excel e Google Sheets.
- * Inclui o cabeçalho UTF-8 BOM (\uFEFF) para garantir a correta renderização de acentos no Excel.
+ * Exporta os links do projeto em CSV compatível com Excel e Google Sheets
+ * com as 9 colunas da taxonomia de referência.
  */
 export function exportProjectToCsv(project: Project, links: UtmLink[]): void {
   const headers = [
     'Projeto',
-    'URL Destino',
-    'Origem (utm_source)',
-    'Mídia (utm_medium)',
-    'Campanha (utm_campaign)',
-    'Termo (utm_term)',
-    'Conteúdo (utm_content)',
+    'URL sem UTM',
+    'País',
+    'Canal',
+    'Produto',
+    'Source',
+    'Medium',
+    'Macro Estratégias',
+    'Identifier',
+    'Micro Estratégia',
     'Descrição / Observações',
     'URL Final Gerada',
     'Data de Criação',
@@ -21,11 +24,14 @@ export function exportProjectToCsv(project: Project, links: UtmLink[]): void {
   const rows = links.map((link) => [
     escapeCsvCell(project.name),
     escapeCsvCell(link.urlDestino),
-    escapeCsvCell(link.utmSource),
-    escapeCsvCell(link.utmMedium),
-    escapeCsvCell(link.utmCampaign),
-    escapeCsvCell(link.utmTerm || ''),
-    escapeCsvCell(link.utmContent || ''),
+    escapeCsvCell(link.pais || 'BR'),
+    escapeCsvCell(link.canal || 'Social'),
+    escapeCsvCell(link.produto || ''),
+    escapeCsvCell(link.source),
+    escapeCsvCell(link.medium),
+    escapeCsvCell(link.macroEstrategia || ''),
+    escapeCsvCell(link.identifier || ''),
+    escapeCsvCell(link.microEstrategia || ''),
     escapeCsvCell(link.descricao || ''),
     escapeCsvCell(link.urlFinal),
     escapeCsvCell(new Date(link.createdAt).toLocaleString('pt-BR')),
@@ -33,7 +39,6 @@ export function exportProjectToCsv(project: Project, links: UtmLink[]): void {
 
   const csvContent = [headers.join(';'), ...rows.map((row) => row.join(';'))].join('\r\n')
 
-  // \uFEFF força o Excel a reconhecer o arquivo como UTF-8
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const downloadLink = document.createElement('a')

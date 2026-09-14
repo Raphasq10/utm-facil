@@ -43,24 +43,29 @@ export function LinksTable({
   const [searchQuery, setSearchQuery] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
-  // Filtra os links em tempo real com base no texto digitado
   const filteredLinks = useMemo(() => {
     if (!searchQuery.trim()) return links
     const query = searchQuery.toLowerCase().trim()
     return links.filter((link) => {
-      const source = link.utmSource.toLowerCase()
-      const medium = link.utmMedium.toLowerCase()
-      const campaign = link.utmCampaign.toLowerCase()
-      const content = (link.utmContent || '').toLowerCase()
-      const term = (link.utmTerm || '').toLowerCase()
+      const source = (link.source || '').toLowerCase()
+      const medium = (link.medium || '').toLowerCase()
+      const produto = (link.produto || '').toLowerCase()
+      const macro = (link.macroEstrategia || '').toLowerCase()
+      const micro = (link.microEstrategia || '').toLowerCase()
+      const identifier = (link.identifier || '').toLowerCase()
+      const canal = (link.canal || '').toLowerCase()
+      const pais = (link.pais || '').toLowerCase()
       const desc = (link.descricao || '').toLowerCase()
       const url = link.urlFinal.toLowerCase()
       return (
         source.includes(query) ||
         medium.includes(query) ||
-        campaign.includes(query) ||
-        content.includes(query) ||
-        term.includes(query) ||
+        produto.includes(query) ||
+        macro.includes(query) ||
+        micro.includes(query) ||
+        identifier.includes(query) ||
+        canal.includes(query) ||
+        pais.includes(query) ||
         desc.includes(query) ||
         url.includes(query)
       )
@@ -114,7 +119,7 @@ export function LinksTable({
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <Input
             type="text"
-            placeholder="Buscar por campanha, canal, termo ou descrição..."
+            placeholder="Buscar por produto, source, medium, identifier ou estratégia..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             maxLength={100}
@@ -134,27 +139,23 @@ export function LinksTable({
       </CardHeader>
 
       <CardContent className="p-0">
-        {/* ESTADO 1: LOADING */}
         {isLoading && (
           <div className="p-6 space-y-3">
-            <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
         )}
 
-        {/* ESTADO 2: ERRO */}
         {!isLoading && error && (
           <div className="p-12 text-center space-y-2">
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
               <FilterX className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-bold text-slate-800">Ocorreu um erro ao carregar os links</h4>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">{error}</p>
+            <h4 className="text-sm font-bold text-slate-800">Erro ao carregar links</h4>
+            <p className="text-xs text-slate-500">{error}</p>
           </div>
         )}
 
-        {/* ESTADO 3: VAZIO GERAL (Sem nenhum link no projeto) */}
         {!isLoading && !error && links.length === 0 && (
           <div className="p-12 text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto border border-sky-100">
@@ -163,20 +164,18 @@ export function LinksTable({
             <div className="space-y-1">
               <h4 className="text-sm font-bold text-slate-800">Nenhum link gerado neste projeto ainda</h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Preencha os campos no <strong>Construtor Inteligente de UTMs</strong> acima para cadastrar o primeiro link rastreado.
+                Preencha os campos estruturados no construtor acima para cadastrar o primeiro link.
               </p>
             </div>
           </div>
         )}
 
-        {/* ESTADO 4: VAZIO POR FILTRO DE BUSCA */}
         {!isLoading && !error && links.length > 0 && filteredLinks.length === 0 && (
           <div className="p-10 text-center space-y-2">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
               <Search className="w-5 h-5" />
             </div>
             <h4 className="text-sm font-semibold text-slate-700">Nenhum link encontrado para "{searchQuery}"</h4>
-            <p className="text-xs text-slate-500">Tente buscar por outro canal, criativo ou limpe a busca.</p>
             <Button
               type="button"
               variant="outline"
@@ -189,42 +188,55 @@ export function LinksTable({
           </div>
         )}
 
-        {/* TABELA DE LINKS */}
         {!isLoading && !error && filteredLinks.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/60 text-slate-500 font-semibold">
-                  <th className="py-3 px-4 w-[160px]">Origem / Mídia</th>
-                  <th className="py-3 px-4">Campanha & Descrição</th>
-                  <th className="py-3 px-4 w-[150px]">Conteúdo (Criativo)</th>
-                  <th className="py-3 px-4 w-[280px]">Link Rastreável</th>
+                  <th className="py-3 px-4 w-[160px]">Source / Medium</th>
+                  <th className="py-3 px-4">Produto & Estratégia</th>
+                  <th className="py-3 px-4 w-[170px]">Identifier (Material)</th>
+                  <th className="py-3 px-4 w-[280px]">Link Rastreável (GA4)</th>
                   <th className="py-3 px-4 w-[110px] text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredLinks.map((link) => (
                   <tr key={link.id} className="hover:bg-slate-50/70 transition-colors group">
-                    {/* Origem e Mídia */}
+                    {/* Source / Medium + País + Canal */}
                     <td className="py-3.5 px-4 align-top space-y-1">
                       <div className="flex flex-wrap gap-1">
                         <Badge variant="info" className="text-[10px] font-mono px-1.5 py-0.5">
-                          {link.utmSource}
+                          {link.source}
                         </Badge>
                         <Badge variant="warning" className="text-[10px] font-mono px-1.5 py-0.5">
-                          {link.utmMedium}
+                          {link.medium}
                         </Badge>
                       </div>
-                      <span className="text-[10px] text-slate-400 block">
-                        {new Date(link.createdAt).toLocaleDateString('pt-BR')}
-                      </span>
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                        {link.pais && <span className="font-semibold text-slate-600">{link.pais}</span>}
+                        {link.pais && link.canal && <span>•</span>}
+                        {link.canal && <span>{link.canal}</span>}
+                      </div>
                     </td>
 
-                    {/* Campanha e Descrição */}
+                    {/* Produto & Estratégias */}
                     <td className="py-3.5 px-4 align-top space-y-1">
                       <span className="font-bold text-slate-900 text-xs block">
-                        {link.utmCampaign}
+                        {link.produto || 'Geral'}
                       </span>
+                      <div className="flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
+                        {link.macroEstrategia && (
+                          <span className="bg-slate-100 px-1.5 py-0.2 rounded text-[10px] text-slate-600">
+                            macro: {link.macroEstrategia}
+                          </span>
+                        )}
+                        {link.microEstrategia && (
+                          <span className="bg-slate-100 px-1.5 py-0.2 rounded text-[10px] text-slate-600">
+                            micro: {link.microEstrategia}
+                          </span>
+                        )}
+                      </div>
                       {link.descricao && (
                         <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">
                           {link.descricao}
@@ -232,20 +244,18 @@ export function LinksTable({
                       )}
                     </td>
 
-                    {/* Conteúdo / Termo */}
+                    {/* Identifier (Material/Vídeo) */}
                     <td className="py-3.5 px-4 align-top space-y-1">
-                      {link.utmContent ? (
-                        <code className="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded block truncate max-w-[130px]">
-                          {link.utmContent}
+                      {link.identifier ? (
+                        <code className="text-[10px] bg-sky-50 text-sky-800 border border-sky-100 px-1.5 py-0.5 rounded block truncate max-w-[150px]">
+                          {link.identifier}
                         </code>
                       ) : (
                         <span className="text-slate-300">—</span>
                       )}
-                      {link.utmTerm && (
-                        <span className="text-[10px] text-slate-400 block truncate max-w-[130px]" title={link.utmTerm}>
-                          termo: {link.utmTerm}
-                        </span>
-                      )}
+                      <span className="text-[10px] text-slate-400 block">
+                        {new Date(link.createdAt).toLocaleDateString('pt-BR')}
+                      </span>
                     </td>
 
                     {/* URL Final com Atalho de Cópia */}
@@ -260,7 +270,6 @@ export function LinksTable({
                     {/* Botões de Ação */}
                     <td className="py-3.5 px-4 align-top text-right">
                       <div className="flex items-center justify-end gap-1">
-                        {/* Botão Copiar Link */}
                         <Button
                           type="button"
                           variant="outline"
@@ -271,7 +280,7 @@ export function LinksTable({
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                               : 'hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300'
                           }`}
-                          title="Copiar URL para a área de transferência"
+                          title="Copiar URL"
                         >
                           {copiedId === link.id ? (
                             <>
@@ -286,7 +295,6 @@ export function LinksTable({
                           )}
                         </Button>
 
-                        {/* Botão Abrir em Nova Aba */}
                         <a
                           href={link.urlFinal}
                           target="_blank"
@@ -297,7 +305,6 @@ export function LinksTable({
                           <ExternalLink className="w-3 h-3" />
                         </a>
 
-                        {/* Botão Editar (Acesso Especial) */}
                         <button
                           type="button"
                           onClick={() => onEditLink(link)}
@@ -307,7 +314,6 @@ export function LinksTable({
                           <Edit2 className="w-3 h-3" />
                         </button>
 
-                        {/* Botão Excluir (Acesso Especial) */}
                         <button
                           type="button"
                           onClick={() => onDeleteLink(link.id)}
@@ -326,7 +332,6 @@ export function LinksTable({
         )}
       </CardContent>
 
-      {/* Rodapé do Banco de Links */}
       {!isLoading && links.length > 0 && (
         <div className="px-5 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
           <span>
@@ -334,7 +339,7 @@ export function LinksTable({
           </span>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
             <Sparkles className="w-3 h-3 text-sky-500" />
-            <span>Todos os links possuem taxonomia GA4 higienizada</span>
+            <span>Taxonomia oficial com País, Canal, Produto e Estratégia</span>
           </div>
         </div>
       )}

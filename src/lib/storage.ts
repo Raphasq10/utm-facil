@@ -1,15 +1,14 @@
 import type { Project, UtmLink } from '@/types'
 
 const STORAGE_KEYS = {
-  PROJECTS: 'utm_itaipu_projects',
-  LINKS: 'utm_itaipu_links',
-  ACTIVE_PROJECT: 'utm_itaipu_active_project',
+  PROJECTS: 'utm_itaipu_projects_v2',
+  LINKS: 'utm_itaipu_links_v2',
+  ACTIVE_PROJECT: 'utm_itaipu_active_project_v2',
   AUTH_SESSION: 'utm_itaipu_auth_session',
 }
 
 const DEFAULT_EDITOR_KEY = import.meta.env.VITE_EDITOR_MASTER_KEY || 'parquetec2026'
 
-// Dados iniciais de demonstração (representando iniciativas reais do Itaipu Parquetec)
 const INITIAL_PROJECTS: Project[] = [
   {
     id: 'proj-inovacao-2026',
@@ -32,43 +31,37 @@ const INITIAL_LINKS: UtmLink[] = [
     id: 'link-meta-startups',
     projectId: 'proj-inovacao-2026',
     urlDestino: 'https://itaipuparquetec.org.br/editais',
-    utmSource: 'meta-ads',
-    utmMedium: 'feed-carrossel',
-    utmCampaign: 'edital-aceleracao-2026',
-    utmTerm: 'startups-deeptech',
-    utmContent: 'cta-inscreva-se-agora',
-    descricao: 'Anúncio no Feed do Instagram para startups de energia limpa',
-    urlFinal: 'https://itaipuparquetec.org.br/editais?utm_source=meta-ads&utm_medium=feed-carrossel&utm_campaign=edital-aceleracao-2026&utm_term=startups-deeptech&utm_content=cta-inscreva-se-agora',
+    pais: 'BR',
+    canal: 'Social',
+    produto: 'Edital Aceleração',
+    source: 'Instagram',
+    medium: 'Stories',
+    macroEstrategia: 'Conversão',
+    identifier: 'Video Teaser Startups 01',
+    microEstrategia: 'Leads de Fevereiro',
+    descricao: 'Anúncio no Stories do Instagram convidando startups de energia limpa',
+    urlFinal:
+      'https://itaipuparquetec.org.br/editais?utm_source=instagram&utm_medium=stories&utm_campaign=br_edital-aceleracao_conversao_leads-de-fevereiro&utm_content=video-teaser-startups-01&utm_term=social',
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
     updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
   },
   {
-    id: 'link-linkedin-aceleracao',
-    projectId: 'proj-inovacao-2026',
-    urlDestino: 'https://itaipuparquetec.org.br/editais',
-    utmSource: 'linkedin',
-    utmMedium: 'post-organico',
-    utmCampaign: 'edital-aceleracao-2026',
-    utmTerm: '',
-    utmContent: 'depoimento-fundador',
-    descricao: 'Post no perfil oficial do Itaipu Parquetec no LinkedIn',
-    urlFinal: 'https://itaipuparquetec.org.br/editais?utm_source=linkedin&utm_medium=post-organico&utm_campaign=edital-aceleracao-2026&utm_content=depoimento-fundador',
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-  },
-  {
-    id: 'link-newsletter-visitas',
+    id: 'link-linkedin-institucional',
     projectId: 'proj-institucional-marca',
     urlDestino: 'https://itaipuparquetec.org.br/visitas-tecnicas',
-    utmSource: 'email-marketing',
-    utmMedium: 'newsletter-mensal',
-    utmCampaign: 'visitas-tecnicas-outubro',
-    utmTerm: '',
-    utmContent: 'botao-agendar-visita',
-    descricao: 'Disparo de e-mail institucional para universidades parceiras',
-    urlFinal: 'https://itaipuparquetec.org.br/visitas-tecnicas?utm_source=email-marketing&utm_medium=newsletter-mensal&utm_campaign=visitas-tecnicas-outubro&utm_content=botao-agendar-visita',
-    createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 72).toISOString(),
+    pais: 'BR',
+    canal: 'Social',
+    produto: 'Visitas Técnicas',
+    source: 'LinkedIn',
+    medium: 'Post Orgânico',
+    macroEstrategia: 'Branding',
+    identifier: 'Carrossel Fotos Usina',
+    microEstrategia: 'Acessos 11-02',
+    descricao: 'Post no feed do LinkedIn para universidades parceiras',
+    urlFinal:
+      'https://itaipuparquetec.org.br/visitas-tecnicas?utm_source=linkedin&utm_medium=post-organico&utm_campaign=br_visitas-tecnicas_branding_acessos-11-02&utm_content=carrossel-fotos-usina&utm_term=social',
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
   },
 ]
 
@@ -89,7 +82,6 @@ function setToStorage<T>(key: string, value: T): void {
   }
 }
 
-// Inicializa dados no primeiro uso
 export function initStorage(): void {
   if (!localStorage.getItem(STORAGE_KEYS.PROJECTS)) {
     setToStorage(STORAGE_KEYS.PROJECTS, INITIAL_PROJECTS)
@@ -101,10 +93,6 @@ export function initStorage(): void {
     setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, INITIAL_PROJECTS[0].id)
   }
 }
-
-// ==========================================================
-// PROJETOS
-// ==========================================================
 
 export function getProjects(): Project[] {
   initStorage()
@@ -130,11 +118,9 @@ export function deleteProject(projectId: string): void {
   const projects = getProjects().filter((p) => p.id !== projectId)
   setToStorage(STORAGE_KEYS.PROJECTS, projects)
 
-  // Remove também todos os links atrelados a este projeto
   const links = getLinks().filter((l) => l.projectId !== projectId)
   setToStorage(STORAGE_KEYS.LINKS, links)
 
-  // Se o projeto ativo for o removido, troca para o primeiro restante
   if (getActiveProjectId() === projectId) {
     setActiveProjectId(projects.length > 0 ? projects[0].id : '')
   }
@@ -148,10 +134,6 @@ export function getActiveProjectId(): string {
 export function setActiveProjectId(id: string): void {
   setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, id)
 }
-
-// ==========================================================
-// LINKS
-// ==========================================================
 
 export function getLinks(projectId?: string): UtmLink[] {
   initStorage()
@@ -196,10 +178,6 @@ export function deleteLink(id: string): boolean {
   return true
 }
 
-// ==========================================================
-// AUTENTICAÇÃO / MODO DE EDIÇÃO
-// ==========================================================
-
 export function isEditorAuthenticated(): boolean {
   return sessionStorage.getItem(STORAGE_KEYS.AUTH_SESSION) === 'true'
 }
@@ -216,33 +194,12 @@ export function logoutEditor(): void {
   sessionStorage.removeItem(STORAGE_KEYS.AUTH_SESSION)
 }
 
-// ==========================================================
-// BACKUP / EXPORTAÇÃO JSON
-// ==========================================================
-
 export function exportFullBackup(): string {
   const backup = {
-    version: '1.0.0',
+    version: '2.0.0',
     exportDate: new Date().toISOString(),
     projects: getProjects(),
     links: getLinks(),
   }
   return JSON.stringify(backup, null, 2)
-}
-
-export function importFullBackup(jsonString: string): boolean {
-  try {
-    const data = JSON.parse(jsonString)
-    if (data && Array.isArray(data.projects) && Array.isArray(data.links)) {
-      setToStorage(STORAGE_KEYS.PROJECTS, data.projects)
-      setToStorage(STORAGE_KEYS.LINKS, data.links)
-      if (data.projects.length > 0) {
-        setActiveProjectId(data.projects[0].id)
-      }
-      return true
-    }
-    return false
-  } catch {
-    return false
-  }
 }

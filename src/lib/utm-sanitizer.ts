@@ -1,50 +1,49 @@
 /**
  * Utilitário de Sanitização e Construção de UTMs
- * Itaipu Parquetec — Comunicação & Marketing
+ * Baseado na taxonomia de 9 parâmetros do Itaipu Parquetec:
+ * - País
+ * - Canal
+ * - Produto
+ * - Source
+ * - Medium
+ * - Macro Estratégias
+ * - Identifier
+ * - Micro Estratégia
+ * - URL sem UTM
  */
 
-/**
- * Higieniza um valor de parâmetro UTM:
- * - Converte para minúsculas
- * - Remove acentos e caracteres diacríticos (ex: "é" -> "e", "ç" -> "c")
- * - Substitui espaços e caracteres especiais não permitidos por hífens (-)
- * - Remove hífens duplicados e remove hífens do início/fim
- */
 export function sanitizeUtmParam(value: string): string {
   if (!value) return ''
 
   return value
     .trim()
     .toLowerCase()
-    // Decompõe caracteres acentuados em caractere base + diacrítico
     .normalize('NFD')
-    // Remove os diacríticos
     .replace(/[\u0300-\u036f]/g, '')
-    // Substitui caracteres não alfanuméricos (exceto hífen e sublinhado) por hífen
     .replace(/[^a-z0-9-_]+/g, '-')
-    // Remove múltiplos hífens consecutivos
     .replace(/-+/g, '-')
-    // Remove hífens no início e no final
     .replace(/^-+|-+$/g, '')
 }
 
 export interface UtmInput {
   urlDestino: string
-  utmSource: string
-  utmMedium: string
-  utmCampaign: string
-  utmTerm?: string
-  utmContent?: string
+  pais?: string
+  canal?: string
+  produto?: string
+  source: string
+  medium: string
+  macroEstrategia?: string
+  identifier?: string
+  microEstrategia?: string
 }
 
-/**
- * Valida se uma URL base possui formato válido com protocolo (http:// ou https://)
- */
 export function isValidUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false
   const trimmed = url.trim()
   try {
-    const parsed = new URL(trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`)
+    const parsed = new URL(
+      trimmed.startsWith('http://') || trimmed.startsWith('https://') ? trimmed : `https://${trimmed}`
+    )
     return Boolean(parsed.hostname && parsed.hostname.includes('.'))
   } catch {
     return false
@@ -52,33 +51,57 @@ export function isValidUrl(url: string): boolean {
 }
 
 /**
- * Normaliza e constrói a URL final com todos os parâmetros UTM
- * Garante que parâmetros pré-existentes na URL sejam preservados e que a concatenação
- * com ? ou & seja 100% válida.
+ * Constrói o nome unificado e padronizado da campanha (utm_campaign)
+ * Composição: [pais]_[produto]_[macroEstrategia]_[microEstrategia]
+ * Exemplo: br_hub-inovacao_aceleracao_leads-fevereiro
+ */
+export function buildCampaignName(input: {
+  pais?: string
+  produto?: string
+  macroEstrategia?: string
+  microEstrategia?: string
+}): string {
+  const parts = [
+    input.pais ? sanitizeUtmParam(input.pais) : '',
+    input.produto ? sanitizeUtmParam(input.produto) : '',
+    input.macroEstrategia ? sanitizeUtmParam(input.macroEstrategia) : '',
+    input.microEstrategia ? sanitizeUtmParam(input.microEstrategia) : '',
+  ].filter(Boolean)
+
+  return parts.join('_')
+}
+
+/**
+ * Constrói a URL final parametrizada para o Google Analytics 4
  */
 export function buildUtmUrl(input: UtmInput): string {
   const rawUrl = input.urlDestino ? input.urlDestino.trim() : ''
   if (!rawUrl) return ''
 
-  // Adiciona https:// caso o usuário digite apenas o domínio (ex: itaipuparquetec.org.br)
-  const fullUrl = rawUrl.startsWith('http://') || rawUrl.startsWith('https://')
-    ? rawUrl
-    : `https://${rawUrl}`
+  const fullUrl =
+    rawUrl.startsWith('http://') || rawUrl.startsWith('https://')
+      ? rawUrl
+      : `https://${rawUrl}`
 
   try {
     const url = new URL(fullUrl)
 
-    const source = sanitizeUtmParam(input.utmSource)
-    const medium = sanitizeUtmParam(input.utmMedium)
-    const campaign = sanitizeUtmParam(input.utmCampaign)
-    const term = input.utmTerm ? sanitizeUtmParam(input.utmTerm) : ''
-    const content = input.utmContent ? sanitizeUtmParam(input.utmContent) : ''
+    const source = sanitizeUtmParam(input.source)
+    const medium = sanitizeUtmParam(input.medium)
+    const campaign = buildCampaignName({
+      pais: input.pais,
+      produto: input.produto,
+      macroEstrategia: input.macroEstrategia,
+      microEstrategia: input.microEstrategia,
+    })
+    const content = input.identifier ? sanitizeUtmParam(input.identifier) : ''
+    const term = input.canal ? sanitizeUtmParam(input.canal) : ''
 
     if (source) url.searchParams.set('utm_source', source)
     if (medium) url.searchParams.set('utm_medium', medium)
     if (campaign) url.searchParams.set('utm_campaign', campaign)
-    if (term) url.searchParams.set('utm_term', term)
     if (content) url.searchParams.set('utm_content', content)
+    if (term) url.searchParams.set('utm_term', term)
 
     return url.toString()
   } catch {

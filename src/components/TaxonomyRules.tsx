@@ -1,82 +1,86 @@
 import { useState } from 'react'
-import { BookOpen, ChevronDown, ChevronUp, Copy, Check, Sparkles, AlertCircle } from 'lucide-react'
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  Globe2,
+  Share2,
+  Package,
+  Layers,
+  FileCode,
+  Calendar,
+  MousePointerClick,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
-interface TaxonomyRulesProps {
-  onApplyPreset?: (source: string, medium: string) => void
-}
+export function TaxonomyRules() {
+  const [isOpen, setIsOpen] = useState(true)
 
-export function TaxonomyRules({ onApplyPreset }: TaxonomyRulesProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [copiedPreset, setCopiedPreset] = useState<string | null>(null)
-
-  const presets = [
+  const parameters = [
     {
-      channel: 'Instagram Stories',
-      source: 'instagram',
-      medium: 'stories',
-      tip: 'Para links inseridos em figurinhas de stories orgânicos',
-      color: 'bg-rose-50 text-rose-700 border-rose-200',
+      name: 'País',
+      icon: Globe2,
+      desc: 'Selecione as iniciais do país onde irá divulgar a campanha. É ideal para empresas que trabalham com campanhas internacionais também (ex: BR, PY, AR).',
+      example: 'BR, PY, AR, GLOBAL',
     },
     {
-      channel: 'Instagram / LinkedIn Feed',
-      source: 'instagram',
-      medium: 'feed',
-      tip: 'Para posts em imagem única ou carrossel orgânico',
-      color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+      name: 'Canal',
+      icon: Share2,
+      desc: 'Com o canal, você escolhe a fonte principal de divulgação. Alguns exemplos são Email, Blog, Evento e Social (em Source você define qual a rede social específica).',
+      example: 'Social, Email, Blog, Evento',
     },
     {
-      channel: 'LinkedIn Institucional',
-      source: 'linkedin',
-      medium: 'post-organico',
-      tip: 'Para publicações de artigos, vagas ou editais corporativos',
-      color: 'bg-sky-50 text-sky-700 border-sky-200',
+      name: 'Produto',
+      icon: Package,
+      desc: 'Escolha qual produto específico da sua empresa essa divulgação se refere.',
+      example: 'Edital de Aceleração, Vestibular, Visitas Técnicas',
     },
     {
-      channel: 'E-mail & Newsletters',
-      source: 'email-marketing',
-      medium: 'newsletter',
-      tip: 'Para disparos periódicos a parceiros e comunidade',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      name: 'Source',
+      icon: MousePointerClick,
+      desc: 'Com o Source, você vai identificar onde a sua campanha será exibida. Pode ser o próprio Google, Pop-up ou qualquer rede social que você planeja rastrear.',
+      example: 'Google, Instagram, LinkedIn, Pop-up',
     },
     {
-      channel: 'Meta Ads (Tráfego Pago)',
-      source: 'meta-ads',
-      medium: 'cpc',
-      tip: 'Para anúncios patrocinados no Facebook e Instagram',
-      color: 'bg-amber-50 text-amber-700 border-amber-200',
+      name: 'Medium',
+      icon: Layers,
+      desc: 'O Medium identifica que tipo de mídia você está usando para promover o link. Pode ser um Banner, Email Marketing, CPC ou qualquer formato que seja usado.',
+      example: 'Banner, Email Marketing, CPC, Stories, Feed',
     },
     {
-      channel: 'Google Ads (Pesquisa)',
-      source: 'google-ads',
-      medium: 'cpc',
-      tip: 'Para campanhas na rede de pesquisa ou performance max',
-      color: 'bg-blue-50 text-blue-700 border-blue-200',
+      name: 'Macro Estratégias',
+      icon: Layers,
+      desc: 'Selecione qual a estratégia macro está trabalhando a partir da divulgação desse link.',
+      example: 'Branding, Conversão, Captação, Engajamento',
     },
     {
-      channel: 'Materiais Impressos (QR Code)',
-      source: 'qrcode',
-      medium: 'cartaz-impresso',
-      tip: 'Para totens, banners, crachás e folders de eventos físicos',
-      color: 'bg-purple-50 text-purple-700 border-purple-200',
+      name: 'Identifier',
+      icon: FileCode,
+      desc: 'Com o Identifier, você define o nome específico do material, vídeo ou outro tipo de conteúdo (utm_content).',
+      example: 'video-teaser-01, banner-topo-azul, carrossel-02',
+    },
+    {
+      name: 'Micro Estratégia',
+      icon: Calendar,
+      desc: 'Defina qual a intenção específica dessa campanha. Você pode incluir a data da campanha, como leads de fevereiro, acessos 11-02, entre outros.',
+      example: 'leads-fevereiro, acessos-11-02, inscricoes-abertas',
+    },
+    {
+      name: 'URL sem UTM',
+      icon: BookOpen,
+      desc: 'Aqui você vai colocar o link da URL que deseja inserir o UTM (página de destino).',
+      example: 'https://itaipuparquetec.org.br/hackathon',
     },
   ]
 
-  const handlePresetClick = (source: string, medium: string, label: string) => {
-    if (onApplyPreset) {
-      onApplyPreset(source, medium)
-      setCopiedPreset(label)
-      setTimeout(() => setCopiedPreset(null), 2000)
-    }
-  }
-
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden transition-all">
-      {/* Cabeçalho do Card */}
+      {/* Cabeçalho */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50/70 transition-colors"
+        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-3">
@@ -85,84 +89,53 @@ export function TaxonomyRules({ onApplyPreset }: TaxonomyRulesProps) {
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              Guia Rápido de Taxonomia & Padrões
+              Entenda cada um dos parâmetros oficiais
               <Badge variant="info" className="text-[10px] py-0 px-2">
-                Para o Time de Conteúdo
+                Referência Oficial
               </Badge>
             </h3>
             <p className="text-xs text-slate-500">
-              Regras oficiais de nomenclatura e atalhos rápidos de preenchimento (GA4)
+              Guia oficial para orientar o time de marketing e comunicação na criação padronizada de UTMs
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-medium text-sky-600">
-          <span>{isOpen ? 'Recolher guia' : 'Ver convenções'}</span>
+          <span>{isOpen ? 'Recolher guia' : 'Ver parâmetros'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
 
-      {/* Conteúdo Expansível */}
+      {/* Conteúdo com os 9 parâmetros */}
       {isOpen && (
         <div className="px-5 pb-5 pt-1 border-t border-slate-100 space-y-4 animate-in fade-in duration-200">
-          {/* Regras de Ouro */}
-          <div className="bg-amber-50/80 rounded-xl p-3.5 border border-amber-200/60 flex items-start gap-3">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-900 space-y-1">
-              <span className="font-bold block">Regras de Ouro do Itaipu Parquetec:</span>
-              <ul className="list-disc pl-4 space-y-0.5 text-amber-800">
-                <li>
-                  <strong>Apenas minúsculas:</strong> o sistema converte automaticamente para evitar duplicidades como <code>cpc</code> vs <code>CPC</code> no Google Analytics.
-                </li>
-                <li>
-                  <strong>Sem espaços ou acentos:</strong> espaços viram hífens (<code>-</code>) e letras como <code>ç</code> viram <code>c</code>.
-                </li>
-                <li>
-                  <strong>Padronização:</strong> use sempre os mesmos termos para os canais para que os relatórios do time de dados fiquem limpos.
-                </li>
-              </ul>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+            {parameters.map((param) => {
+              const Icon = param.icon
+              return (
+                <div
+                  key={param.name}
+                  className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-sky-300 transition-all space-y-1.5 flex flex-col justify-between"
+                >
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <Icon className="w-3.5 h-3.5 text-sky-600" />
+                      {param.name}
+                    </span>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">{param.desc}</p>
+                  </div>
+                  <div className="pt-1 text-[10px] font-mono text-slate-500 bg-slate-100/80 px-2 py-1 rounded">
+                    Ex: {param.example}
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
-          {/* Atalhos Rápidos para Preencher o Gerador */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-                Clique em um atalho para aplicar direto no formulário:
-              </span>
-              {copiedPreset && (
-                <span className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 animate-in fade-in">
-                  <Check className="w-3 h-3" /> Aplicado no formulário!
-                </span>
-              )}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {presets.map((preset) => (
-                <button
-                  key={preset.channel}
-                  type="button"
-                  onClick={() => handlePresetClick(preset.source, preset.medium, preset.channel)}
-                  className="p-2.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-sky-50/50 hover:border-sky-300 text-left transition-all group flex flex-col justify-between"
-                  title="Clique para preencher Origem e Mídia"
-                >
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 group-hover:text-sky-700 flex items-center justify-between">
-                      {preset.channel}
-                      <Copy className="w-3 h-3 text-slate-400 group-hover:text-sky-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </span>
-                    <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{preset.tip}</p>
-                  </div>
-                  <div className="mt-2 flex items-center gap-1.5 font-mono text-[10px]">
-                    <span className="bg-slate-200/80 px-1.5 py-0.5 rounded text-slate-700">
-                      s: {preset.source}
-                    </span>
-                    <span className="bg-slate-200/80 px-1.5 py-0.5 rounded text-slate-700">
-                      m: {preset.medium}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 bg-sky-50/60 p-3 rounded-xl border border-sky-100">
+            <span className="flex items-center gap-1.5 font-medium text-sky-950">
+              <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+              O sistema normaliza automaticamente todos os valores digitados (minúsculas, sem acentos e com hífens).
+            </span>
           </div>
         </div>
       )}

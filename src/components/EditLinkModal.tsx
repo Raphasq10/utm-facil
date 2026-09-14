@@ -25,67 +25,75 @@ export function EditLinkModal({
   onAuthenticatedEditor,
   onUpdateLink,
 }: EditLinkModalProps) {
-  // Estado de senha caso não seja editor ainda
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
 
-  // Estados dos campos de edição
+  // 9 Parâmetros de Edição
   const [urlDestino, setUrlDestino] = useState('')
-  const [utmSource, setUtmSource] = useState('')
-  const [utmMedium, setUtmMedium] = useState('')
-  const [utmCampaign, setUtmCampaign] = useState('')
-  const [utmTerm, setUtmTerm] = useState('')
-  const [utmContent, setUtmContent] = useState('')
+  const [pais, setPais] = useState('')
+  const [canal, setCanal] = useState('')
+  const [produto, setProduto] = useState('')
+  const [source, setSource] = useState('')
+  const [medium, setMedium] = useState('')
+  const [macroEstrategia, setMacroEstrategia] = useState('')
+  const [identifier, setIdentifier] = useState('')
+  const [microEstrategia, setMicroEstrategia] = useState('')
   const [descricao, setDescricao] = useState('')
 
-  // Preenche os campos ao abrir para o link selecionado
   useEffect(() => {
     if (linkToEdit) {
-      setUrlDestino(linkToEdit.urlDestino)
-      setUtmSource(linkToEdit.utmSource)
-      setUtmMedium(linkToEdit.utmMedium)
-      setUtmCampaign(linkToEdit.utmCampaign)
-      setUtmTerm(linkToEdit.utmTerm || '')
-      setUtmContent(linkToEdit.utmContent || '')
+      setUrlDestino(linkToEdit.urlDestino || '')
+      setPais(linkToEdit.pais || 'BR')
+      setCanal(linkToEdit.canal || 'Social')
+      setProduto(linkToEdit.produto || '')
+      setSource(linkToEdit.source || '')
+      setMedium(linkToEdit.medium || '')
+      setMacroEstrategia(linkToEdit.macroEstrategia || '')
+      setIdentifier(linkToEdit.identifier || '')
+      setMicroEstrategia(linkToEdit.microEstrategia || '')
       setDescricao(linkToEdit.descricao || '')
       setPassword('')
       setAuthError('')
     }
   }, [linkToEdit, open])
 
-  // Recalcula preview em tempo real
+  // Recalcula a URL com base nos novos parâmetros
   const calculatedUrl = buildUtmUrl({
     urlDestino,
-    utmSource,
-    utmMedium,
-    utmCampaign,
-    utmTerm,
-    utmContent,
+    pais,
+    canal,
+    produto,
+    source,
+    medium,
+    macroEstrategia,
+    identifier,
+    microEstrategia,
   })
 
-  // Validação de Chave Especial
   const handleVerifyPassword = (e: React.FormEvent) => {
     e.preventDefault()
     if (verifyEditorKey(password)) {
       onAuthenticatedEditor()
       setAuthError('')
     } else {
-      setAuthError('Chave especial incorreta. Verifique a senha com o administrador.')
+      setAuthError('Chave especial incorreta. A senha padrão inicial é: parquetec2026')
     }
   }
 
-  // Submissão da Edição
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!linkToEdit) return
 
     onUpdateLink(linkToEdit.id, {
       urlDestino: urlDestino.trim(),
-      utmSource: sanitizeUtmParam(utmSource),
-      utmMedium: sanitizeUtmParam(utmMedium),
-      utmCampaign: sanitizeUtmParam(utmCampaign),
-      utmTerm: utmTerm ? sanitizeUtmParam(utmTerm) : undefined,
-      utmContent: utmContent ? sanitizeUtmParam(utmContent) : undefined,
+      pais: sanitizeUtmParam(pais),
+      canal: sanitizeUtmParam(canal),
+      produto: sanitizeUtmParam(produto),
+      source: sanitizeUtmParam(source),
+      medium: sanitizeUtmParam(medium),
+      macroEstrategia: sanitizeUtmParam(macroEstrategia),
+      identifier: sanitizeUtmParam(identifier),
+      microEstrategia: sanitizeUtmParam(microEstrategia),
       descricao: descricao ? descricao.trim() : undefined,
       urlFinal: calculatedUrl,
     })
@@ -97,7 +105,6 @@ export function EditLinkModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogClose onClick={() => onOpenChange(false)} />
 
-      {/* CASO 1: PRECISA DESBLOQUEAR MODO EDITOR */}
       {!isEditor ? (
         <div>
           <DialogHeader>
@@ -106,7 +113,7 @@ export function EditLinkModal({
             </div>
             <DialogTitle>Acesso Especial para Edição</DialogTitle>
             <DialogDescription>
-              Para proteger a integridade dos links oficiais da equipe, a edição retroativa exige a Chave Mestra de Marketing.
+              Para proteger a integridade dos links oficiais da equipe, digite a Chave Mestra de Marketing.
             </DialogDescription>
           </DialogHeader>
 
@@ -132,7 +139,7 @@ export function EditLinkModal({
                 <p className="text-xs text-rose-600 font-medium">{authError}</p>
               ) : (
                 <p className="text-[11px] text-slate-400">
-                  Dica: a senha padrão inicial do projeto é <code>parquetec2026</code>.
+                  Dica: a senha padrão inicial é <code>parquetec2026</code>.
                 </p>
               )}
             </div>
@@ -148,23 +155,22 @@ export function EditLinkModal({
           </form>
         </div>
       ) : (
-        /* CASO 2: AUTENTICADO COMO EDITOR — FORMULÁRIO DE EDIÇÃO */
         <div>
           <DialogHeader>
             <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-2">
               <Edit3 className="w-5 h-5" />
             </div>
-            <DialogTitle>Editar Link de Campanha</DialogTitle>
+            <DialogTitle>Editar Parâmetros do Link</DialogTitle>
             <DialogDescription>
-              Modifique os parâmetros desejados. A URL final será recalculada mantendo a higienização automática.
+              Modifique os parâmetros desejados. A URL final será recalculada com higienização automática.
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSaveEdit} className="space-y-3 mt-3 max-h-[70vh] overflow-y-auto pr-1">
-            {/* URL Destino */}
+          <form onSubmit={handleSaveEdit} className="space-y-3 mt-3 max-h-[72vh] overflow-y-auto pr-1">
+            {/* 1. URL SEM UTM */}
             <div className="space-y-1">
               <Label htmlFor="editUrlDestino" required>
-                URL de Destino
+                1. URL sem UTM
               </Label>
               <Input
                 id="editUrlDestino"
@@ -176,17 +182,53 @@ export function EditLinkModal({
               />
             </div>
 
-            {/* Grid 3 colunas */}
+            {/* GRID: PAÍS, CANAL, PRODUTO */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div className="space-y-1">
+                <Label htmlFor="editPais">2. País</Label>
+                <Input
+                  id="editPais"
+                  type="text"
+                  value={pais}
+                  onChange={(e) => setPais(e.target.value)}
+                  maxLength={10}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="editCanal">3. Canal</Label>
+                <Input
+                  id="editCanal"
+                  type="text"
+                  value={canal}
+                  onChange={(e) => setCanal(e.target.value)}
+                  maxLength={50}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="editProduto">4. Produto</Label>
+                <Input
+                  id="editProduto"
+                  type="text"
+                  value={produto}
+                  onChange={(e) => setProduto(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+            </div>
+
+            {/* GRID: SOURCE & MEDIUM */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="space-y-1">
                 <Label htmlFor="editSource" required>
-                  Origem (source)
+                  5. Source
                 </Label>
                 <Input
                   id="editSource"
                   type="text"
-                  value={utmSource}
-                  onChange={(e) => setUtmSource(e.target.value)}
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
                   maxLength={100}
                   required
                 />
@@ -194,53 +236,50 @@ export function EditLinkModal({
 
               <div className="space-y-1">
                 <Label htmlFor="editMedium" required>
-                  Mídia (medium)
+                  6. Medium
                 </Label>
                 <Input
                   id="editMedium"
                   type="text"
-                  value={utmMedium}
-                  onChange={(e) => setUtmMedium(e.target.value)}
+                  value={medium}
+                  onChange={(e) => setMedium(e.target.value)}
                   maxLength={100}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="editCampaign" required>
-                  Campanha
-                </Label>
-                <Input
-                  id="editCampaign"
-                  type="text"
-                  value={utmCampaign}
-                  onChange={(e) => setUtmCampaign(e.target.value)}
-                  maxLength={150}
                   required
                 />
               </div>
             </div>
 
-            {/* Grid Conteúdo e Termo */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {/* GRID: MACRO, IDENTIFIER, MICRO */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div className="space-y-1">
-                <Label htmlFor="editContent">Conteúdo (utm_content)</Label>
+                <Label htmlFor="editMacro">7. Macro Estratégias</Label>
                 <Input
-                  id="editContent"
+                  id="editMacro"
                   type="text"
-                  value={utmContent}
-                  onChange={(e) => setUtmContent(e.target.value)}
+                  value={macroEstrategia}
+                  onChange={(e) => setMacroEstrategia(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="editIdentifier">8. Identifier</Label>
+                <Input
+                  id="editIdentifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   maxLength={150}
                 />
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="editTerm">Termo (utm_term)</Label>
+                <Label htmlFor="editMicro">9. Micro Estratégia</Label>
                 <Input
-                  id="editTerm"
+                  id="editMicro"
                   type="text"
-                  value={utmTerm}
-                  onChange={(e) => setUtmTerm(e.target.value)}
+                  value={microEstrategia}
+                  onChange={(e) => setMicroEstrategia(e.target.value)}
                   maxLength={100}
                 />
               </div>
@@ -248,7 +287,7 @@ export function EditLinkModal({
 
             {/* Descrição */}
             <div className="space-y-1">
-              <Label htmlFor="editDescricao">Descrição Interna</Label>
+              <Label htmlFor="editDescricao">Descrição Interna / Observação</Label>
               <Input
                 id="editDescricao"
                 type="text"
