@@ -10,12 +10,6 @@ import {
   ExternalLink,
   RefreshCw,
   BookmarkPlus,
-  Globe2,
-  Share2,
-  Package,
-  Layers,
-  FileCode,
-  Calendar,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,71 +18,104 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { buildUtmUrl, sanitizeUtmParam, isValidUrl } from '@/lib/utm-sanitizer'
 import type { Project, UtmLink } from '@/types'
 
-// Listas padrão do mercado de publicidade e marketing
-export const STANDARD_CANAIS = [
-  'Social',
-  'Email',
-  'Blog',
-  'Evento',
-  'Mídia Paga',
-  'Institucional',
-  'Outro (digitar)',
+// Lista de Origens (Source) — De onde o visitante vem
+export const SOURCE_GROUPS = [
+  {
+    group: 'Redes Sociais',
+    options: [
+      { label: 'Instagram', value: 'instagram' },
+      { label: 'LinkedIn', value: 'linkedin' },
+      { label: 'Facebook', value: 'facebook' },
+      { label: 'YouTube', value: 'youtube' },
+      { label: 'TikTok', value: 'tiktok' },
+      { label: 'X (antigo Twitter)', value: 'twitter' },
+    ],
+  },
+  {
+    group: 'Mecanismos de Busca & Anúncios',
+    options: [
+      { label: 'Google', value: 'google' },
+      { label: 'Meta Ads (Gerenciador de Anúncios)', value: 'meta-ads' },
+      { label: 'Bing', value: 'bing' },
+    ],
+  },
+  {
+    group: 'Mensageria & E-mail',
+    options: [
+      { label: 'WhatsApp', value: 'whatsapp' },
+      { label: 'E-mail / RD Station', value: 'email-marketing' },
+      { label: 'Telegram', value: 'telegram' },
+    ],
+  },
+  {
+    group: 'Outros Canais',
+    options: [
+      { label: 'Pop-up no Site Institucional', value: 'popup-site' },
+      { label: 'QR Code Impresso', value: 'qrcode' },
+      { label: 'Portal de Notícias / Assessoria de Imprensa', value: 'imprensa' },
+      { label: 'Outro (digitar manualmente)', value: 'custom' },
+    ],
+  },
 ]
 
-export const STANDARD_SOURCES = [
-  { label: 'Instagram', value: 'instagram' },
-  { label: 'LinkedIn', value: 'linkedin' },
-  { label: 'Google', value: 'google' },
-  { label: 'Meta (Facebook / Instagram Ads)', value: 'meta-ads' },
-  { label: 'YouTube', value: 'youtube' },
-  { label: 'TikTok', value: 'tiktok' },
-  { label: 'WhatsApp', value: 'whatsapp' },
-  { label: 'E-mail / RD Station', value: 'email-marketing' },
-  { label: 'Pop-up no Site', value: 'popup-site' },
-  { label: 'QR Code Impresso', value: 'qrcode' },
-  { label: 'Portal de Notícias / Imprensa', value: 'portal-noticias' },
-  { label: 'Outro (digitar)', value: 'custom' },
+// Lista de Mídias (Medium) — Desagrupada, granular e dividida por tipo de mídia
+export const MEDIUM_GROUPS = [
+  {
+    group: 'Mídias Patrocinadas (Tráfego Pago)',
+    options: [
+      { label: 'Post Patrocinado', value: 'post-patrocinado' },
+      { label: 'Vídeo Patrocinado', value: 'video-patrocinado' },
+      { label: 'Stories Patrocinado', value: 'stories-patrocinado' },
+      { label: 'Reels Patrocinado', value: 'reels-patrocinado' },
+      { label: 'Banner Patrocinado', value: 'banner-patrocinado' },
+      { label: 'Display Patrocinado', value: 'display-patrocinado' },
+      { label: 'Anúncio de Pesquisa (CPC / Google Search)', value: 'cpc' },
+    ],
+  },
+  {
+    group: 'Redes Sociais (Orgânico)',
+    options: [
+      { label: 'Stories (Instagram)', value: 'stories' },
+      { label: 'Feed (Post / Carrossel)', value: 'feed' },
+      { label: 'Reels (Instagram)', value: 'reels' },
+      { label: 'Shorts (YouTube)', value: 'shorts' },
+      { label: 'Link na Bio', value: 'link-bio' },
+      { label: 'Post Orgânico (LinkedIn / Facebook)', value: 'post-organico' },
+      { label: 'Vídeo Orgânico', value: 'video' },
+    ],
+  },
+  {
+    group: 'E-mail & Mensagens',
+    options: [
+      { label: 'E-mail Marketing', value: 'email' },
+      { label: 'Newsletter', value: 'newsletter' },
+      { label: 'Mensagem Direta (WhatsApp / Direct)', value: 'mensagem-direta' },
+    ],
+  },
+  {
+    group: 'Materiais Físicos & Outros',
+    options: [
+      { label: 'Cartaz / Banner Físico (QR Code)', value: 'cartaz-impresso' },
+      { label: 'Crachá / Folder de Evento', value: 'evento-impresso' },
+      { label: 'Outro (digitar manualmente)', value: 'custom' },
+    ],
+  },
 ]
 
-export const STANDARD_MEDIUMS = [
-  { label: 'Stories (Instagram)', value: 'stories' },
-  { label: 'Feed (Post / Imagem / Carrossel)', value: 'feed' },
-  { label: 'Reels / Shorts (Vídeo curto)', value: 'reels' },
-  { label: 'CPC / Link Patrocinado (Pago)', value: 'cpc' },
-  { label: 'Banner / Display', value: 'banner' },
-  { label: 'Newsletter / Boletim', value: 'newsletter' },
-  { label: 'Post Orgânico', value: 'post-organico' },
-  { label: 'Link na Bio', value: 'link-bio' },
-  { label: 'Vídeo Dedicado', value: 'video' },
-  { label: 'Cartaz / Totem Impresso', value: 'cartaz-impresso' },
-  { label: 'Disparo Direto', value: 'disparo-direto' },
-  { label: 'Outro (digitar)', value: 'custom' },
-]
-
-export const STANDARD_PAISES = [
-  { label: 'BR (Brasil)', value: 'BR' },
-  { label: 'PY (Paraguai)', value: 'PY' },
-  { label: 'AR (Argentina)', value: 'AR' },
-  { label: 'GLOBAL (Internacional)', value: 'GLOBAL' },
-  { label: 'Outro', value: 'custom' },
-]
-
+// Esquema 100% no padrão do Google URL Builder
 const utmSchema = z.object({
   urlDestino: z
     .string()
-    .min(1, 'A URL sem UTM é obrigatória.')
+    .min(1, 'A URL de destino é obrigatória.')
     .max(2000, 'A URL deve ter no máximo 2000 caracteres.')
     .refine((val) => isValidUrl(val), {
       message: 'Insira um endereço web válido (ex: itaipuparquetec.org.br ou https://...)',
     }),
-  pais: z.string().max(10).optional(),
-  canal: z.string().max(50).optional(),
-  produto: z.string().max(100).optional(),
-  source: z.string().min(1, 'Source é obrigatório.').max(100),
-  medium: z.string().min(1, 'Medium é obrigatório.').max(100),
-  macroEstrategia: z.string().max(100).optional(),
-  identifier: z.string().max(150).optional(),
-  microEstrategia: z.string().max(100).optional(),
+  source: z.string().min(1, 'Origem (source) é obrigatória.').max(100),
+  medium: z.string().min(1, 'Mídia (medium) é obrigatória.').max(100),
+  campaignName: z.string().min(1, 'Nome da campanha é obrigatório.').max(150),
+  content: z.string().max(150).optional(),
+  term: z.string().max(100).optional(),
   descricao: z.string().max(500).optional(),
 })
 
@@ -102,17 +129,11 @@ interface UtmBuilderProps {
 export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
   const [copied, setCopied] = useState(false)
 
-  // Estados dos seletores suspensos
-  const [selectedPais, setSelectedPais] = useState('BR')
-  const [customPais, setCustomPais] = useState('')
-
-  const [selectedCanal, setSelectedCanal] = useState('Social')
-  const [customCanal, setCustomCanal] = useState('')
-
+  // Seletores para Source e Medium
   const [selectedSource, setSelectedSource] = useState('instagram')
   const [customSource, setCustomSource] = useState('')
 
-  const [selectedMedium, setSelectedMedium] = useState('stories')
+  const [selectedMedium, setSelectedMedium] = useState('post-patrocinado')
   const [customMedium, setCustomMedium] = useState('')
 
   const {
@@ -126,30 +147,17 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
     resolver: zodResolver(utmSchema),
     defaultValues: {
       urlDestino: '',
-      pais: 'BR',
-      canal: 'Social',
-      produto: '',
       source: 'instagram',
-      medium: 'stories',
-      macroEstrategia: '',
-      identifier: '',
-      microEstrategia: '',
+      medium: 'post-patrocinado',
+      campaignName: '',
+      content: '',
+      term: '',
       descricao: '',
     },
     mode: 'onChange',
   })
 
   // Sincroniza selects com react-hook-form
-  useEffect(() => {
-    const finalPais = selectedPais === 'custom' ? customPais : selectedPais
-    setValue('pais', finalPais, { shouldValidate: true })
-  }, [selectedPais, customPais, setValue])
-
-  useEffect(() => {
-    const finalCanal = selectedCanal === 'Outro (digitar)' ? customCanal : selectedCanal
-    setValue('canal', finalCanal, { shouldValidate: true })
-  }, [selectedCanal, customCanal, setValue])
-
   useEffect(() => {
     const finalSource = selectedSource === 'custom' ? customSource : selectedSource
     setValue('source', finalSource, { shouldValidate: true })
@@ -162,18 +170,22 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
 
   const watched = watch()
 
-  // Constrói a URL em tempo real
+  // Constrói a URL no padrão do Google Analytics
   const previewUrl = buildUtmUrl({
     urlDestino: watched.urlDestino || '',
-    pais: watched.pais || '',
-    canal: watched.canal || '',
-    produto: watched.produto || '',
     source: watched.source || '',
     medium: watched.medium || '',
-    macroEstrategia: watched.macroEstrategia || '',
-    identifier: watched.identifier || '',
-    microEstrategia: watched.microEstrategia || '',
+    macroEstrategia: watched.campaignName || '', // mapeia para campaign name
+    identifier: watched.content || '',          // mapeia para content
+    canal: watched.term || '',                  // mapeia para term
   })
+
+  const handleSanitizeBlur = (field: 'campaignName' | 'content' | 'term') => {
+    const current = watched[field]
+    if (current) {
+      setValue(field, sanitizeUtmParam(current), { shouldValidate: true })
+    }
+  }
 
   const handleCopyPreview = () => {
     if (!previewUrl) return
@@ -189,19 +201,19 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
     onSaveLink({
       projectId: activeProject.id,
       urlDestino: data.urlDestino.trim(),
-      pais: sanitizeUtmParam(data.pais || 'BR'),
-      canal: sanitizeUtmParam(data.canal || 'Social'),
-      produto: sanitizeUtmParam(data.produto || activeProject.name),
       source: sanitizeUtmParam(data.source),
       medium: sanitizeUtmParam(data.medium),
-      macroEstrategia: sanitizeUtmParam(data.macroEstrategia || ''),
-      identifier: sanitizeUtmParam(data.identifier || ''),
-      microEstrategia: sanitizeUtmParam(data.microEstrategia || ''),
+      macroEstrategia: sanitizeUtmParam(data.campaignName),
+      identifier: data.content ? sanitizeUtmParam(data.content) : '',
+      canal: data.term ? sanitizeUtmParam(data.term) : 'web',
+      pais: 'BR',
+      produto: activeProject.name,
       descricao: data.descricao ? data.descricao.trim() : undefined,
       urlFinal: previewUrl,
     })
 
-    setValue('identifier', '')
+    // Limpa apenas o criativo para criar o próximo anúncio rapidamente
+    setValue('content', '')
     setValue('descricao', '')
   }
 
@@ -212,20 +224,18 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2 text-base text-slate-900">
               <Link2 className="w-5 h-5 text-sky-600" />
-              Construtor de Links UTM (Padrões de Publicidade)
+              Construtor de UTMs (Padrão Oficial Google Analytics)
             </CardTitle>
             <CardDescription>
-              Seleção rápida por listas suspensas padronizadas (evita erros de digitação e inconsistências no GA4).
+              Campos oficiais do Google com seleção rápida por tipo de mídia (sem misturar formatos).
             </CardDescription>
           </div>
           <button
             type="button"
             onClick={() => {
               reset()
-              setSelectedPais('BR')
-              setSelectedCanal('Social')
               setSelectedSource('instagram')
-              setSelectedMedium('stories')
+              setSelectedMedium('post-patrocinado')
             }}
             className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors cursor-pointer"
             title="Limpar formulário"
@@ -237,18 +247,18 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
 
       <CardContent className="pt-5">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* 1. URL SEM UTM */}
+          {/* 1. WEBSITE URL (URL DE DESTINO) */}
           <div className="space-y-1.5 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80">
             <div className="flex items-center justify-between">
               <Label htmlFor="urlDestino" required className="text-xs font-bold text-slate-800">
-                1. URL sem UTM (Página de Destino)
+                Website URL (Página de Destino) *
               </Label>
-              <span className="text-[11px] text-slate-500">Link onde o usuário vai aterrissar</span>
+              <span className="text-[11px] text-slate-500">Ex: https://itaipuparquetec.org.br/inscricoes</span>
             </div>
             <Input
               id="urlDestino"
               type="text"
-              placeholder="https://itaipuparquetec.org.br/sua-campanha"
+              placeholder="https://itaipuparquetec.org.br/sua-pagina"
               maxLength={2000}
               {...register('urlDestino')}
               className={errors.urlDestino ? 'border-rose-300 focus-visible:ring-rose-200' : 'bg-white'}
@@ -258,203 +268,160 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
             )}
           </div>
 
-          {/* GRID: PAÍS, CANAL, PRODUTO */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* 2. PAÍS (LISTA SUSPENSA) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="selectPais" className="flex items-center gap-1">
-                <Globe2 className="w-3 h-3 text-sky-600" /> 2. País
-              </Label>
-              <select
-                id="selectPais"
-                value={selectedPais}
-                onChange={(e) => setSelectedPais(e.target.value)}
-                className="flex h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/20"
-              >
-                {STANDARD_PAISES.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-              {selectedPais === 'custom' && (
-                <Input
-                  type="text"
-                  placeholder="Digite a sigla do país..."
-                  value={customPais}
-                  onChange={(e) => setCustomPais(e.target.value)}
-                  maxLength={10}
-                  className="mt-1 text-xs"
-                />
-              )}
-            </div>
-
-            {/* 3. CANAL (LISTA SUSPENSA) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="selectCanal" className="flex items-center gap-1">
-                <Share2 className="w-3 h-3 text-sky-600" /> 3. Canal (Fonte Geral)
-              </Label>
-              <select
-                id="selectCanal"
-                value={selectedCanal}
-                onChange={(e) => setSelectedCanal(e.target.value)}
-                className="flex h-10 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/20"
-              >
-                {STANDARD_CANAIS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-              {selectedCanal === 'Outro (digitar)' && (
-                <Input
-                  type="text"
-                  placeholder="Digite o canal..."
-                  value={customCanal}
-                  onChange={(e) => setCustomCanal(e.target.value)}
-                  maxLength={50}
-                  className="mt-1 text-xs"
-                />
-              )}
-            </div>
-
-            {/* 4. PRODUTO */}
+          {/* GRID: SOURCE & MEDIUM (AS DUAS DÚVIDAS PRINCIPAIS COM EXPLICAÇÕES CLARAS) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sky-50/40 p-4 rounded-xl border border-sky-100">
+            {/* CAMPAIGN SOURCE */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="produto" className="flex items-center gap-1">
-                  <Package className="w-3 h-3 text-sky-600" /> 4. Produto
+                <Label htmlFor="selectSource" required className="font-bold text-sky-950 text-xs">
+                  Campaign Source (Origem) *
                 </Label>
-                <span className="text-[10px] text-slate-400">Oferta da empresa</span>
+                <span className="text-[11px] text-sky-700 font-medium bg-sky-100/80 px-2 py-0.5 rounded">
+                  "De onde o visitante veio?"
+                </span>
               </div>
-              <Input
-                id="produto"
-                type="text"
-                placeholder="Edital, Hub, Vestibular..."
-                maxLength={100}
-                {...register('produto')}
-              />
-              <p className="text-[10px] text-slate-400">Produto ou serviço divulgado no link.</p>
-            </div>
-          </div>
-
-          {/* GRID: SOURCE & MEDIUM (LISTAS SUSPENSAS CONSAGRADAS) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-sky-50/40 p-3.5 rounded-xl border border-sky-100">
-            {/* 5. SOURCE (LISTA SUSPENSA) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="selectSource" required className="flex items-center gap-1 text-sky-950 font-bold">
-                5. Source (Onde a campanha será exibida)
-              </Label>
               <select
                 id="selectSource"
                 value={selectedSource}
                 onChange={(e) => setSelectedSource(e.target.value)}
                 className="flex h-10 w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs text-slate-800 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/20"
               >
-                {STANDARD_SOURCES.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
+                {SOURCE_GROUPS.map((group) => (
+                  <optgroup key={group.group} label={group.group}>
+                    {group.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
+
               {selectedSource === 'custom' && (
                 <Input
                   type="text"
-                  placeholder="Digite a fonte/rede..."
+                  placeholder="Digite a origem (ex: threads, parceiro-x)..."
                   value={customSource}
                   onChange={(e) => setCustomSource(e.target.value)}
                   maxLength={100}
-                  className="mt-1 text-xs"
+                  className="mt-1.5 text-xs"
                 />
               )}
-              <p className="text-[10px] text-slate-500">Ex: Google, Instagram, LinkedIn, Pop-up...</p>
+              <p className="text-[10px] text-slate-500">
+                A plataforma onde o link está divulgado (Instagram, Google, LinkedIn, etc.).
+              </p>
             </div>
 
-            {/* 6. MEDIUM (LISTA SUSPENSA) */}
+            {/* CAMPAIGN MEDIUM */}
             <div className="space-y-1.5">
-              <Label htmlFor="selectMedium" required className="flex items-center gap-1 text-sky-950 font-bold">
-                6. Medium (Formato da mídia)
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="selectMedium" required className="font-bold text-sky-950 text-xs">
+                  Campaign Medium (Mídia / Formato) *
+                </Label>
+                <span className="text-[11px] text-sky-700 font-medium bg-sky-100/80 px-2 py-0.5 rounded">
+                  "Como/qual o formato?"
+                </span>
+              </div>
               <select
                 id="selectMedium"
                 value={selectedMedium}
                 onChange={(e) => setSelectedMedium(e.target.value)}
                 className="flex h-10 w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs text-slate-800 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/20"
               >
-                {STANDARD_MEDIUMS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
+                {MEDIUM_GROUPS.map((group) => (
+                  <optgroup key={group.group} label={group.group}>
+                    {group.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
+
               {selectedMedium === 'custom' && (
                 <Input
                   type="text"
-                  placeholder="Digite o tipo de mídia..."
+                  placeholder="Digite o formato (ex: podcast, webinar)..."
                   value={customMedium}
                   onChange={(e) => setCustomMedium(e.target.value)}
                   maxLength={100}
-                  className="mt-1 text-xs"
+                  className="mt-1.5 text-xs"
                 />
               )}
-              <p className="text-[10px] text-slate-500">Ex: Stories, Feed, CPC, Banner, Newsletter...</p>
+              <p className="text-[10px] text-slate-500">
+                O veículo específico: pós patrocinado, vídeo patrocinado, stories, feed, etc.
+              </p>
             </div>
           </div>
 
-          {/* GRID: MACRO ESTRATÉGIAS, IDENTIFIER, MICRO ESTRATÉGIA */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {/* 7. MACRO ESTRATÉGIAS */}
-            <div className="space-y-1.5">
-              <Label htmlFor="macroEstrategia" className="flex items-center gap-1">
-                <Layers className="w-3 h-3 text-sky-600" /> 7. Macro Estratégias
+          {/* 4. CAMPAIGN NAME */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="campaignName" required className="font-bold text-slate-800 text-xs">
+                Campaign Name (Nome da Campanha) *
               </Label>
-              <Input
-                id="macroEstrategia"
-                type="text"
-                placeholder="branding, conversao, captacao..."
-                maxLength={100}
-                {...register('macroEstrategia')}
-              />
-              <p className="text-[10px] text-slate-400">Estratégia macro trabalhada.</p>
+              <span className="text-[10px] text-slate-400">Ex: vestibular-2026, edital-aceleracao, black-friday</span>
             </div>
+            <Input
+              id="campaignName"
+              type="text"
+              placeholder="ex: vestibular-2026, feira-inovacao-outubro"
+              maxLength={150}
+              {...register('campaignName')}
+              onBlur={() => handleSanitizeBlur('campaignName')}
+              className={errors.campaignName ? 'border-rose-300' : ''}
+            />
+            {errors.campaignName && (
+              <p className="text-xs text-rose-600 font-medium">{errors.campaignName.message}</p>
+            )}
+            <p className="text-[10px] text-slate-500">Identifica a campanha ou produto geral (ex: vestibular-2026).</p>
+          </div>
 
-            {/* 8. IDENTIFIER */}
+          {/* GRID: CONTENT & TERM (CAMPOS OPCIONAIS DO GOOGLE) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* CAMPAIGN CONTENT */}
             <div className="space-y-1.5">
-              <Label htmlFor="identifier" className="flex items-center gap-1">
-                <FileCode className="w-3 h-3 text-sky-600" /> 8. Identifier (Material/Vídeo)
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="content">Campaign Content (Criativo / Conteúdo)</Label>
+                <span className="text-[10px] text-slate-400 font-normal">Opcional</span>
+              </div>
               <Input
-                id="identifier"
+                id="content"
                 type="text"
-                placeholder="video-01, banner-azul..."
+                placeholder="ex: banner-azul, video-depoimento, botao-cta-topo"
                 maxLength={150}
-                {...register('identifier')}
+                {...register('content')}
+                onBlur={() => handleSanitizeBlur('content')}
               />
-              <p className="text-[10px] text-slate-400">Nome específico do criativo ou conteúdo.</p>
+              <p className="text-[10px] text-slate-400">Usado para diferenciar anúncios ou criativos da mesma campanha.</p>
             </div>
 
-            {/* 9. MICRO ESTRATÉGIA */}
+            {/* CAMPAIGN TERM */}
             <div className="space-y-1.5">
-              <Label htmlFor="microEstrategia" className="flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-sky-600" /> 9. Micro Estratégia
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="term">Campaign Term (Palavra-chave)</Label>
+                <span className="text-[10px] text-slate-400 font-normal">Opcional (Google Ads)</span>
+              </div>
               <Input
-                id="microEstrategia"
+                id="term"
                 type="text"
-                placeholder="leads-fevereiro, acessos-11-02..."
+                placeholder="ex: inovacao-energia, startups-deeptech"
                 maxLength={100}
-                {...register('microEstrategia')}
+                {...register('term')}
+                onBlur={() => handleSanitizeBlur('term')}
               />
-              <p className="text-[10px] text-slate-400">Intenção específica ou data da campanha.</p>
+              <p className="text-[10px] text-slate-400">Palavra-chave paga no Google Ads (quase sempre vazio em redes sociais).</p>
             </div>
           </div>
 
-          {/* Anotação / Descrição Opcional */}
+          {/* DESCRIÇÃO INTERNA */}
           <div className="space-y-1">
-            <Label htmlFor="descricao">Descrição Interna / Observações</Label>
+            <Label htmlFor="descricao">Observações / Anotações Internas</Label>
             <Input
               id="descricao"
               type="text"
-              placeholder="Instruções para os redatores ou local onde o link deve ser inserido..."
+              placeholder="Instruções para a equipe de redatores ou onde colar o link..."
               maxLength={500}
               {...register('descricao')}
             />
@@ -465,7 +432,7 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-sky-950 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                URL Final Montada (Preview em Tempo Real):
+                URL Final Montada (Preview Oficial do Google Analytics):
               </span>
               {previewUrl && (
                 <a
@@ -482,7 +449,7 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
             <div className="bg-white rounded-lg border border-sky-100 p-3 font-mono text-xs text-slate-800 break-all select-all min-h-[44px] flex items-center">
               {previewUrl || (
                 <span className="text-slate-400 font-sans italic text-xs">
-                  Preencha a URL sem UTM para visualizar a URL completa...
+                  Preencha os campos obrigatórios acima para visualizar o link completo...
                 </span>
               )}
             </div>
@@ -502,7 +469,7 @@ export function UtmBuilder({ activeProject, onSaveLink }: UtmBuilderProps) {
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3.5 h-3.5" /> Copiar Link
+                    <Copy className="w-3.5 h-3.5" /> Copiar Link Pronto
                   </>
                 )}
               </Button>

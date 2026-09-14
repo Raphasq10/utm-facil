@@ -6,12 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { buildUtmUrl, sanitizeUtmParam } from '@/lib/utm-sanitizer'
 import { verifyEditorKey } from '@/lib/storage'
-import {
-  STANDARD_CANAIS,
-  STANDARD_SOURCES,
-  STANDARD_MEDIUMS,
-  STANDARD_PAISES,
-} from '@/components/UtmBuilder'
+import { SOURCE_GROUPS, MEDIUM_GROUPS } from '@/components/UtmBuilder'
 import type { UtmLink } from '@/types'
 
 interface EditLinkModalProps {
@@ -34,29 +29,23 @@ export function EditLinkModal({
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
 
-  // 9 Parâmetros de Edição
+  // Campos no padrão oficial do Google
   const [urlDestino, setUrlDestino] = useState('')
-  const [pais, setPais] = useState('BR')
-  const [canal, setCanal] = useState('Social')
-  const [produto, setProduto] = useState('')
   const [source, setSource] = useState('instagram')
-  const [medium, setMedium] = useState('stories')
-  const [macroEstrategia, setMacroEstrategia] = useState('')
-  const [identifier, setIdentifier] = useState('')
-  const [microEstrategia, setMicroEstrategia] = useState('')
+  const [medium, setMedium] = useState('post-patrocinado')
+  const [campaignName, setCampaignName] = useState('')
+  const [content, setContent] = useState('')
+  const [term, setTerm] = useState('')
   const [descricao, setDescricao] = useState('')
 
   useEffect(() => {
     if (linkToEdit) {
       setUrlDestino(linkToEdit.urlDestino || '')
-      setPais(linkToEdit.pais || 'BR')
-      setCanal(linkToEdit.canal || 'Social')
-      setProduto(linkToEdit.produto || '')
       setSource(linkToEdit.source || 'instagram')
-      setMedium(linkToEdit.medium || 'stories')
-      setMacroEstrategia(linkToEdit.macroEstrategia || '')
-      setIdentifier(linkToEdit.identifier || '')
-      setMicroEstrategia(linkToEdit.microEstrategia || '')
+      setMedium(linkToEdit.medium || 'post-patrocinado')
+      setCampaignName(linkToEdit.macroEstrategia || linkToEdit.produto || '')
+      setContent(linkToEdit.identifier || '')
+      setTerm(linkToEdit.canal || '')
       setDescricao(linkToEdit.descricao || '')
       setPassword('')
       setAuthError('')
@@ -65,14 +54,11 @@ export function EditLinkModal({
 
   const calculatedUrl = buildUtmUrl({
     urlDestino,
-    pais,
-    canal,
-    produto,
     source,
     medium,
-    macroEstrategia,
-    identifier,
-    microEstrategia,
+    macroEstrategia: campaignName,
+    identifier: content,
+    canal: term,
   })
 
   const handleVerifyPassword = (e: React.FormEvent) => {
@@ -91,14 +77,11 @@ export function EditLinkModal({
 
     onUpdateLink(linkToEdit.id, {
       urlDestino: urlDestino.trim(),
-      pais: sanitizeUtmParam(pais),
-      canal: sanitizeUtmParam(canal),
-      produto: sanitizeUtmParam(produto),
       source: sanitizeUtmParam(source),
       medium: sanitizeUtmParam(medium),
-      macroEstrategia: sanitizeUtmParam(macroEstrategia),
-      identifier: sanitizeUtmParam(identifier),
-      microEstrategia: sanitizeUtmParam(microEstrategia),
+      macroEstrategia: sanitizeUtmParam(campaignName),
+      identifier: content ? sanitizeUtmParam(content) : '',
+      canal: term ? sanitizeUtmParam(term) : 'web',
       descricao: descricao ? descricao.trim() : undefined,
       urlFinal: calculatedUrl,
     })
@@ -165,17 +148,17 @@ export function EditLinkModal({
             <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-2">
               <Edit3 className="w-5 h-5" />
             </div>
-            <DialogTitle>Editar Parâmetros do Link</DialogTitle>
+            <DialogTitle>Editar Parâmetros do Link (Google Analytics)</DialogTitle>
             <DialogDescription>
-              Modifique os parâmetros desejados. A URL final será recalculada com higienização automática.
+              Modifique a URL, origem, mídia ou criativo. A URL será recalculada instantaneamente.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSaveEdit} className="space-y-3 mt-3 max-h-[72vh] overflow-y-auto pr-1">
-            {/* 1. URL SEM UTM */}
+            {/* 1. WEBSITE URL */}
             <div className="space-y-1">
               <Label htmlFor="editUrlDestino" required>
-                1. URL sem UTM
+                Website URL (Página de Destino) *
               </Label>
               <Input
                 id="editUrlDestino"
@@ -187,57 +170,11 @@ export function EditLinkModal({
               />
             </div>
 
-            {/* GRID: PAÍS, CANAL, PRODUTO */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="editPais">2. País</Label>
-                <select
-                  id="editPais"
-                  value={pais}
-                  onChange={(e) => setPais(e.target.value)}
-                  className="flex h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
-                >
-                  {STANDARD_PAISES.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="editCanal">3. Canal</Label>
-                <select
-                  id="editCanal"
-                  value={canal}
-                  onChange={(e) => setCanal(e.target.value)}
-                  className="flex h-9 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
-                >
-                  {STANDARD_CANAIS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="editProduto">4. Produto</Label>
-                <Input
-                  id="editProduto"
-                  type="text"
-                  value={produto}
-                  onChange={(e) => setProduto(e.target.value)}
-                  maxLength={100}
-                />
-              </div>
-            </div>
-
-            {/* GRID: SOURCE & MEDIUM COM LISTA SUSPENSA */}
+            {/* GRID: SOURCE & MEDIUM */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-sky-50/50 p-2.5 rounded-lg border border-sky-100">
               <div className="space-y-1">
-                <Label htmlFor="editSource" required className="font-bold text-sky-950">
-                  5. Source
+                <Label htmlFor="editSource" required className="font-bold text-sky-950 text-xs">
+                  Campaign Source *
                 </Label>
                 <select
                   id="editSource"
@@ -245,17 +182,21 @@ export function EditLinkModal({
                   onChange={(e) => setSource(e.target.value)}
                   className="flex h-9 w-full rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-slate-800"
                 >
-                  {STANDARD_SOURCES.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
+                  {SOURCE_GROUPS.map((g) => (
+                    <optgroup key={g.group} label={g.group}>
+                      {g.options.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="editMedium" required className="font-bold text-sky-950">
-                  6. Medium
+                <Label htmlFor="editMedium" required className="font-bold text-sky-950 text-xs">
+                  Campaign Medium *
                 </Label>
                 <select
                   id="editMedium"
@@ -263,54 +204,64 @@ export function EditLinkModal({
                   onChange={(e) => setMedium(e.target.value)}
                   className="flex h-9 w-full rounded-lg border border-sky-200 bg-white px-2 py-1 text-xs text-slate-800"
                 >
-                  {STANDARD_MEDIUMS.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
+                  {MEDIUM_GROUPS.map((g) => (
+                    <optgroup key={g.group} label={g.group}>
+                      {g.options.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* GRID: MACRO, IDENTIFIER, MICRO */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="editMacro">7. Macro Estratégias</Label>
-                <Input
-                  id="editMacro"
-                  type="text"
-                  value={macroEstrategia}
-                  onChange={(e) => setMacroEstrategia(e.target.value)}
-                  maxLength={100}
-                />
-              </div>
+            {/* CAMPAIGN NAME */}
+            <div className="space-y-1">
+              <Label htmlFor="editCampaignName" required>
+                Campaign Name (Nome da Campanha) *
+              </Label>
+              <Input
+                id="editCampaignName"
+                type="text"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                maxLength={150}
+                required
+              />
+            </div>
 
+            {/* GRID: CONTENT & TERM */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label htmlFor="editIdentifier">8. Identifier</Label>
+                <Label htmlFor="editContent">Campaign Content (Criativo)</Label>
                 <Input
-                  id="editIdentifier"
+                  id="editContent"
                   type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
                   maxLength={150}
+                  placeholder="ex: banner-azul, video-01"
                 />
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="editMicro">9. Micro Estratégia</Label>
+                <Label htmlFor="editTerm">Campaign Term (Palavra-chave)</Label>
                 <Input
-                  id="editMicro"
+                  id="editTerm"
                   type="text"
-                  value={microEstrategia}
-                  onChange={(e) => setMicroEstrategia(e.target.value)}
+                  value={term}
+                  onChange={(e) => setTerm(e.target.value)}
                   maxLength={100}
+                  placeholder="ex: tecnologia, deeptech"
                 />
               </div>
             </div>
 
             {/* Descrição */}
             <div className="space-y-1">
-              <Label htmlFor="editDescricao">Descrição Interna / Observação</Label>
+              <Label htmlFor="editDescricao">Observações Internas</Label>
               <Input
                 id="editDescricao"
                 type="text"
