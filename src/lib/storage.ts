@@ -1,69 +1,17 @@
 import type { Project, UtmLink } from '@/types'
 
 const STORAGE_KEYS = {
-  PROJECTS: 'utm_itaipu_projects_v2',
-  LINKS: 'utm_itaipu_links_v2',
-  ACTIVE_PROJECT: 'utm_itaipu_active_project_v2',
+  PROJECTS: 'utm_itaipu_projects_clean',
+  LINKS: 'utm_itaipu_links_clean',
+  ACTIVE_PROJECT: 'utm_itaipu_active_project_clean',
   AUTH_SESSION: 'utm_itaipu_auth_session',
 }
 
 const DEFAULT_EDITOR_KEY = import.meta.env.VITE_EDITOR_MASTER_KEY || 'parquetec2026'
 
-const INITIAL_PROJECTS: Project[] = [
-  {
-    id: 'proj-inovacao-2026',
-    name: 'Hub de Inovação & Aceleração 2026',
-    description: 'Campanhas para captação de startups e projetos para os editais do Itaipu Parquetec.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'proj-institucional-marca',
-    name: 'Ações Institucionais & Parcerias',
-    description: 'Divulgação de eventos, visitas técnicas e comunicação de sustentabilidade.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]
-
-const INITIAL_LINKS: UtmLink[] = [
-  {
-    id: 'link-meta-startups',
-    projectId: 'proj-inovacao-2026',
-    urlDestino: 'https://itaipuparquetec.org.br/editais',
-    pais: 'BR',
-    canal: 'Social',
-    produto: 'Edital Aceleração',
-    source: 'Instagram',
-    medium: 'Stories',
-    macroEstrategia: 'Conversão',
-    identifier: 'Video Teaser Startups 01',
-    microEstrategia: 'Leads de Fevereiro',
-    descricao: 'Anúncio no Stories do Instagram convidando startups de energia limpa',
-    urlFinal:
-      'https://itaipuparquetec.org.br/editais?utm_source=instagram&utm_medium=stories&utm_campaign=br_edital-aceleracao_conversao_leads-de-fevereiro&utm_content=video-teaser-startups-01&utm_term=social',
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-  },
-  {
-    id: 'link-linkedin-institucional',
-    projectId: 'proj-institucional-marca',
-    urlDestino: 'https://itaipuparquetec.org.br/visitas-tecnicas',
-    pais: 'BR',
-    canal: 'Social',
-    produto: 'Visitas Técnicas',
-    source: 'LinkedIn',
-    medium: 'Post Orgânico',
-    macroEstrategia: 'Branding',
-    identifier: 'Carrossel Fotos Usina',
-    microEstrategia: 'Acessos 11-02',
-    descricao: 'Post no feed do LinkedIn para universidades parceiras',
-    urlFinal:
-      'https://itaipuparquetec.org.br/visitas-tecnicas?utm_source=linkedin&utm_medium=post-organico&utm_campaign=br_visitas-tecnicas_branding_acessos-11-02&utm_content=carrossel-fotos-usina&utm_term=social',
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 48).toISOString(),
-  },
-]
+// Base limpa — sem dados fictícios
+const INITIAL_PROJECTS: Project[] = []
+const INITIAL_LINKS: UtmLink[] = []
 
 function getFromStorage<T>(key: string, defaultValue: T): T {
   try {
@@ -90,8 +38,17 @@ export function initStorage(): void {
     setToStorage(STORAGE_KEYS.LINKS, INITIAL_LINKS)
   }
   if (!localStorage.getItem(STORAGE_KEYS.ACTIVE_PROJECT)) {
-    setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, INITIAL_PROJECTS[0].id)
+    setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, '')
   }
+}
+
+export function clearDatabase(): void {
+  localStorage.removeItem(STORAGE_KEYS.PROJECTS)
+  localStorage.removeItem(STORAGE_KEYS.LINKS)
+  localStorage.removeItem(STORAGE_KEYS.ACTIVE_PROJECT)
+  setToStorage(STORAGE_KEYS.PROJECTS, [])
+  setToStorage(STORAGE_KEYS.LINKS, [])
+  setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, '')
 }
 
 export function getProjects(): Project[] {
@@ -128,7 +85,7 @@ export function deleteProject(projectId: string): void {
 
 export function getActiveProjectId(): string {
   initStorage()
-  return getFromStorage<string>(STORAGE_KEYS.ACTIVE_PROJECT, INITIAL_PROJECTS[0]?.id || '')
+  return getFromStorage<string>(STORAGE_KEYS.ACTIVE_PROJECT, '')
 }
 
 export function setActiveProjectId(id: string): void {
@@ -196,7 +153,7 @@ export function logoutEditor(): void {
 
 export function exportFullBackup(): string {
   const backup = {
-    version: '2.0.0',
+    version: '3.0.0',
     exportDate: new Date().toISOString(),
     projects: getProjects(),
     links: getLinks(),

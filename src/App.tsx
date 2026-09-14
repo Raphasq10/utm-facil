@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Toaster, toast } from 'sonner'
+import { FolderPlus, Trash2 } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { TaxonomyRules } from '@/components/TaxonomyRules'
 import { UtmBuilder } from '@/components/UtmBuilder'
@@ -7,6 +8,7 @@ import { LinksTable } from '@/components/LinksTable'
 import { ProjectModal } from '@/components/ProjectModal'
 import { EditLinkModal } from '@/components/EditLinkModal'
 import { ExportModal } from '@/components/ExportModal'
+import { Button } from '@/components/ui/button'
 import {
   getProjects,
   saveProject,
@@ -18,6 +20,7 @@ import {
   deleteLink,
   isEditorAuthenticated,
   logoutEditor,
+  clearDatabase,
 } from '@/lib/storage'
 import type { Project, UtmLink } from '@/types'
 
@@ -33,9 +36,7 @@ export function App() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [linkToEdit, setLinkToEdit] = useState<UtmLink | null>(null)
 
-
-
-  // Carrega dados iniciais
+  // Carrega dados
   const refreshData = useCallback(() => {
     const loadedProjects = getProjects()
     setProjects(loadedProjects)
@@ -78,7 +79,7 @@ export function App() {
   // Salva novo link
   const handleSaveLink = (linkData: Omit<UtmLink, 'id' | 'createdAt' | 'updatedAt'>) => {
     saveLink(linkData)
-    toast.success('Link UTM gerado e salvo no banco do projeto!')
+    toast.success('Link UTM gerado e salvo com sucesso!')
     setLinks(getLinks(activeProjectId))
   }
 
@@ -124,11 +125,19 @@ export function App() {
     }
   }
 
+  // Limpa o banco de dados completamente
+  const handleClearDatabase = () => {
+    if (window.confirm('Tem certeza de que deseja limpar TODO o banco de dados local? Esta ação apagará todos os projetos e links salvos no navegador.')) {
+      clearDatabase()
+      toast.success('Banco de dados local limpo com sucesso!')
+      refreshData()
+    }
+  }
+
   const activeProject = projects.find((p) => p.id === activeProjectId)
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans antialiased">
-      {/* Sistema de Toasts Sonner */}
       <Toaster position="top-right" richColors closeButton />
 
       {/* Header Institucional */}
@@ -145,27 +154,50 @@ export function App() {
 
       {/* Conteúdo Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Banner do Guia de Taxonomia (Para Conteúdo & Mídia) */}
+        {/* Banner do Guia de Taxonomia */}
         <TaxonomyRules />
 
-        {/* Grid: Gerador + Banco de Links */}
-        <div className="space-y-6">
-          {/* Construtor de UTMs */}
-          <UtmBuilder
-            activeProject={activeProject}
-            onSaveLink={handleSaveLink}
-          />
+        {/* CASO 1: AINDA NÃO HÁ NENHUM PROJETO CADASTRADO */}
+        {projects.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-xs space-y-4 max-w-2xl mx-auto my-8">
+            <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto border border-sky-100 shadow-xs">
+              <FolderPlus className="w-8 h-8" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold text-slate-900">
+                Banco de Dados Limpo & Pronto para Começar!
+              </h2>
+              <p className="text-sm text-slate-500 max-w-md mx-auto">
+                Para começar a gerar e organizar seus links rastreáveis, crie o seu projeto (ex: o nome da sua campanha, evento ou área).
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                type="button"
+                size="lg"
+                onClick={() => setProjectModalOpen(true)}
+                className="bg-sky-600 hover:bg-sky-500 font-semibold cursor-pointer shadow-md shadow-sky-600/20"
+              >
+                <FolderPlus className="w-5 h-5" />
+                Criar Meu Primeiro Projeto
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* CASO 2: HÁ PROJETO ATIVO — MOSTRA O CONSTRUTOR E A TABELA */
+          <div className="space-y-6">
+            <UtmBuilder activeProject={activeProject} onSaveLink={handleSaveLink} />
 
-          {/* Banco e Histórico de Links */}
-          <LinksTable
-            project={activeProject}
-            links={links}
-            isEditor={isEditor}
-            onEditLink={handleOpenEditLink}
-            onDeleteLink={handleDeleteLink}
-            onOpenExportModal={() => setExportModalOpen(true)}
-          />
-        </div>
+            <LinksTable
+              project={activeProject}
+              links={links}
+              isEditor={isEditor}
+              onEditLink={handleOpenEditLink}
+              onDeleteLink={handleDeleteLink}
+              onOpenExportModal={() => setExportModalOpen(true)}
+            />
+          </div>
+        )}
       </main>
 
       {/* Rodapé Acessível */}
@@ -177,11 +209,20 @@ export function App() {
               Ambiente Localhost • Padrão WCAG 2.1 AA • Taxonomia Oficial GA4
             </p>
           </div>
-          <div className="flex items-center gap-4 text-[11px] text-slate-500">
+          <div className="flex items-center gap-4 text-[11px] text-slate-500 flex-wrap justify-center">
             <span>
               Status:{' '}
               <strong className="text-emerald-600 font-medium">● Local Storage Ativo</strong>
             </span>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={handleClearDatabase}
+              className="text-rose-500 hover:text-rose-700 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+              title="Apagar todos os dados locais e recomeçar do zero"
+            >
+              <Trash2 className="w-3 h-3" /> Limpar Banco Local
+            </button>
             <span>•</span>
             <span>Chave de Edição: <code>parquetec2026</code></span>
           </div>
