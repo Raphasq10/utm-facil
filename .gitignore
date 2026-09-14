@@ -1,0 +1,34 @@
+# Variáveis de ambiente e segredos
+.env
+.env*.local
+.env.local
+.env.production
+
+# Dependências
+node_modules
+dist
+dist-ssr
+
+# Frameworks / Deploy
+.next
+.vercel
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Sistema e IDEs
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
