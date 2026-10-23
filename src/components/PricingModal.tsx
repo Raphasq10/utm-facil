@@ -1,0 +1,314 @@
+import React, { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { PLAN_CONFIGS, type PlanTier } from '@/types/billing'
+import { useAuth } from '@/contexts/AuthContext'
+import { buildHotmartCheckoutUrl, processHotmartWebhook } from '@/lib/billing'
+import { toast } from 'sonner'
+import {
+  Check,
+  Zap,
+  ShieldCheck,
+  ExternalLink,
+  Sparkles,
+  Loader2,
+  Lock,
+  QrCode,
+  CreditCard,
+} from 'lucide-react'
+
+interface PricingModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  highlightPlan?: PlanTier
+}
+
+export const PricingModal: React.FC<PricingModalProps> = ({
+  open,
+  onOpenChange,
+  highlightPlan = 'pro',
+}) => {
+  const { user, updateUserPlan, isDemoMode } = useAuth()
+  const [isProcessing, setIsProcessing] = useState<string | null>(null)
+
+  const currentPlan = user?.plan || 'free'
+
+  // Redireciona de forma segura para o checkout oficial da Hotmart
+  const handleGoToCheckout = (planKey: PlanTier) => {
+    if (isProcessing) return
+    setIsProcessing(planKey)
+
+    const checkoutUrl = buildHotmartCheckoutUrl(planKey, user?.email)
+    if (!checkoutUrl) {
+      toast.error('Link de checkout da Hotmart não configurado.')
+      setIsProcessing(null)
+      return
+    }
+
+    // Feedback amigável antes de redirecionar
+    toast.info('Redirecionando para o ambiente seguro de pagamento da Hotmart...')
+
+    setTimeout(() => {
+      // Abre o checkout da Hotmart em nova aba com segurança
+      window.open(checkoutUrl, '_blank', 'noopener,noreferrer')
+      setIsProcessing(null)
+    }, 400)
+  }
+
+  // Simula o recebimento do Webhook da Hotmart (para testes do aluno sem gastar dinheiro)
+  const handleSimulateHotmartWebhook = async (targetPlan: 'pro' | 'agency') => {
+    if (isProcessing) return
+    setIsProcessing(`simulate-${targetPlan}`)
+
+    try {
+      // Cria payload idêntico ao enviado pela Hotmart
+      const mockPayload = {
+        hottok: 'demo_hotmart_token',
+        event: 'PURCHASE_APPROVED',
+        data: {
+          buyer: {
+            email: user?.email || 'aluno@teste.com.br',
+            name: user?.fullName || 'Aluno Web Designer',
+          },
+          product: {
+            id: 123456,
+            name: `CampanhaUTM - Plano ${targetPlan.toUpperCase()}`,
+          },
+          purchase: {
+            status: 'approved',
+            approved_date: Date.now(),
+          },
+          subscription: {
+            plan: {
+              name: targetPlan === 'agency' ? 'Plano Agency Escala' : 'Plano Pro Profissional',
+            },
+          },
+        },
+      }
+
+      // Processa com validação Zod e proteção de Mass Assignment
+      const webhookResult = processHotmartWebhook(mockPayload, 'demo_hotmart_token')
+
+      if (webhookResult.success && webhookResult.newPlan) {
+        await updateUserPlan(webhookResult.newPlan)
+        toast.success(`Parabéns! Assinatura do ${PLAN_CONFIGS[webhookResult.newPlan].name} ativada via Hotmart!`)
+        onOpenChange(false)
+      } else {
+        toast.error(webhookResult.error || 'Falha ao processar confirmação.')
+      }
+    } finally {
+      setIsProcessing(null)
+    }
+  }
+
+  // Simula downgrade/cancelamento para testar o comportamento de volta ao Free
+  const handleSimulateCancellation = async () => {
+    if (isProcessing) return
+    setIsProcessing('simulate-cancel')
+    try {
+      const mockCancelPayload = {
+        hottok: 'demo_hotmart_token',
+        event: 'SUBSCRIPTION_CANCELLATION',
+        data: {
+          buyer: {
+            email: user?.email || '',
+          },
+          product: {
+            id: 123456,
+          },
+        },
+      }
+      const webhookResult = processHotmartWebhook(mockCancelPayload, 'demo_hotmart_token')
+      if (webhookResult.success && webhookResult.newPlan) {
+        await updateUserPlan(webhookResult.newPlan)
+        toast.info('Assinatura cancelada. Conta revertida para o Plano Free.')
+      }
+    } finally {
+      setIsProcessing(null)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange} className="max-w-4xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto">
+      <DialogClose onClick={() => onOpenChange(false)} />
+      <DialogContent className="max-w-4xl p-0">
+        <DialogHeader className="text-center space-y-2 pb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mx-auto">
+            <Zap className="w-3.5 h-3.5" />
+            <span>Planos Transparentes & Sem Pegadinhas</span>
+          </div>
+          <DialogTitle className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Evolua a Gestão de Campanhas da sua Operação
+          </DialogTitle>
+          <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">
+            Escolha o nível ideal para o tamanho da sua agência ou e-commerce. Pague com Pix instantâneo ou Cartão de Crédito pela Hotmart.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Grade dos 3 Planos */}
+        <div className="grid md:grid-cols-3 gap-5 pt-4">
+          {(['free', 'pro', 'agency'] as PlanTier[]).map((planKey) => {
+            const plan = PLAN_CONFIGS[planKey]
+            const isCurrent = currentPlan === planKey
+            const isHighlight = highlightPlan === planKey && !isCurrent
+
+            return (
+              <div
+                key={planKey}
+                className={`relative rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 border ${
+                  isHighlight
+                    ? 'border-emerald-500 shadow-xl shadow-emerald-500/10 bg-gradient-to-b from-white to-emerald-50/20 dark:from-zinc-900 dark:to-emerald-950/20'
+                    : isCurrent
+                    ? 'border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-500/30'
+                    : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                }`}
+              >
+                {/* Badge de Destaque */}
+                {plan.isPopular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm tracking-wide uppercase">
+                      Mais Escolhido
+                    </span>
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">{plan.name}</h3>
+                    {isCurrent && (
+                      <Badge className="bg-emerald-600 text-white font-semibold text-[10px] uppercase">
+                        Plano Atual
+                      </Badge>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 min-h-[32px] mb-4">
+                    {plan.description}
+                  </p>
+
+                  {/* Preço */}
+                  <div className="mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
+                        {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
+                      </span>
+                      {plan.price > 0 && (
+                        <span className="text-xs text-zinc-500 font-medium">/{plan.billingPeriod}</span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-zinc-400 block mt-0.5">
+                      {plan.price === 0 ? 'Sem cartão de crédito' : 'Cobrança mensal automática na Hotmart'}
+                    </span>
+                  </div>
+
+                  {/* Lista de Recursos */}
+                  <div className="space-y-2.5 mb-6 text-xs text-zinc-600 dark:text-zinc-300">
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5">
+                        <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Botão de Ação do Card */}
+                <div className="pt-2">
+                  {isCurrent ? (
+                    <Button
+                      variant="outline"
+                      className="w-full border-zinc-200 dark:border-zinc-700 text-zinc-500 cursor-default"
+                      disabled
+                    >
+                      Seu Plano Ativo
+                    </Button>
+                  ) : planKey === 'free' ? (
+                    <Button
+                      variant="ghost"
+                      onClick={handleSimulateCancellation}
+                      disabled={isProcessing === 'simulate-cancel'}
+                      className="w-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 text-xs"
+                    >
+                      {isProcessing === 'simulate-cancel' ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Reverter para o Plano Free'
+                      )}
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <Button
+                        type="button"
+                        onClick={() => handleGoToCheckout(planKey)}
+                        disabled={isProcessing === planKey}
+                        className={`w-full font-semibold transition-all cursor-pointer ${
+                          isHighlight
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
+                            : 'bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900'
+                        }`}
+                      >
+                        {isProcessing === planKey ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Abrindo Checkout...
+                          </>
+                        ) : (
+                          <>
+                            Assinar na Hotmart
+                            <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Botão de Teste Rápido para o Aluno (Modo Demo / Desenvolvimento) */}
+                      {isDemoMode && (
+                        <button
+                          type="button"
+                          onClick={() => handleSimulateHotmartWebhook(planKey)}
+                          disabled={Boolean(isProcessing)}
+                          className="w-full py-1 text-[11px] text-emerald-700 dark:text-emerald-300 hover:underline flex items-center justify-center gap-1 cursor-pointer font-medium"
+                          title="Simula a confirmação de pagamento instantaneamente no seu navegador"
+                        >
+                          <Sparkles className="w-3 h-3 text-emerald-500" />
+                          Simular Aprovação Hotmart (Teste Rápido)
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Rodapé com Selos de Confiança Hotmart */}
+        <div className="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>Processado com segurança pela <strong>Hotmart</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <QrCode className="w-4 h-4 text-emerald-600" />
+            <span>Liberação instantânea com <strong>Pix</strong></span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <CreditCard className="w-4 h-4 text-emerald-600" />
+            <span>Aceita todos os cartões de crédito</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Lock className="w-4 h-4 text-emerald-600" />
+            <span>7 dias de garantia incondicional</span>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

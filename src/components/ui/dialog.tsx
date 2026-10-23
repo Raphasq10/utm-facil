@@ -6,9 +6,10 @@ interface DialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   children: React.ReactNode
+  className?: string
 }
 
-export function Dialog({ open, onOpenChange, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, children, className }: DialogProps) {
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onOpenChange(false)
@@ -33,9 +34,17 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
         onClick={() => onOpenChange(false)}
       />
       {/* Conteúdo do Modal */}
-      <div className="relative z-50 w-full max-w-lg overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95">
+      <div className={cn('relative z-50 w-full max-w-lg overflow-hidden rounded-2xl bg-white p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95', className)}>
         {children}
       </div>
+    </div>
+  )
+}
+
+export function DialogContent({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn('w-full', className)} {...props}>
+      {children}
     </div>
   )
 }
@@ -61,7 +70,7 @@ export function DialogClose({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+      className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer z-10"
       aria-label="Fechar"
     >
       <X className="w-4 h-4" />

@@ -1,5 +1,6 @@
 export interface Project {
   id: string
+  userId?: string
   name: string
   description?: string
   createdAt: string
@@ -8,6 +9,7 @@ export interface Project {
 
 export interface UtmLink {
   id: string
+  userId?: string
   projectId: string
   urlDestino: string        // URL sem UTM
   pais: string              // País (ex: BR, PY, AR)

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { buildUtmUrl, sanitizeUtmParam } from '@/lib/utm-sanitizer'
 import { verifyEditorKey } from '@/lib/storage'
-import { SOURCE_GROUPS, MEDIUM_GROUPS } from '@/components/UtmBuilder'
+import { SOURCE_GROUPS, MEDIUM_GROUPS } from '@/lib/utm-constants'
 import type { UtmLink } from '@/types'
 
 interface EditLinkModalProps {

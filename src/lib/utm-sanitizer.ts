@@ -1,15 +1,10 @@
 /**
- * Utilitário de Sanitização e Construção de UTMs
- * Baseado na taxonomia de 9 parâmetros do Itaipu Parquetec:
- * - País
- * - Canal
- * - Produto
- * - Source
- * - Medium
- * - Macro Estratégias
- * - Identifier
- * - Micro Estratégia
- * - URL sem UTM
+ * Utilitário de Sanitização e Construção de UTMs (Google Analytics 4)
+ * Higienização estrita:
+ * - Converte para minúsculas
+ * - Remove acentos e caracteres especiais
+ * - Substitui espaços e caracteres proibidos por hífens
+ * - Suporta URLs com query strings existentes (? e &) e âncoras (#)
  */
 
 export function sanitizeUtmParam(value: string): string {
@@ -27,11 +22,12 @@ export function sanitizeUtmParam(value: string): string {
 
 export interface UtmInput {
   urlDestino: string
+  source: string
+  medium: string
+  campaignName?: string
   pais?: string
   canal?: string
   produto?: string
-  source: string
-  medium: string
   macroEstrategia?: string
   identifier?: string
   microEstrategia?: string
@@ -73,6 +69,7 @@ export function buildCampaignName(input: {
 
 /**
  * Constrói a URL final parametrizada para o Google Analytics 4
+ * Preserva parâmetros existentes (? e &) e âncoras de seção (#hash)
  */
 export function buildUtmUrl(input: UtmInput): string {
   const rawUrl = input.urlDestino ? input.urlDestino.trim() : ''
@@ -88,12 +85,14 @@ export function buildUtmUrl(input: UtmInput): string {
 
     const source = sanitizeUtmParam(input.source)
     const medium = sanitizeUtmParam(input.medium)
-    const campaign = buildCampaignName({
-      pais: input.pais,
-      produto: input.produto,
-      macroEstrategia: input.macroEstrategia,
-      microEstrategia: input.microEstrategia,
-    })
+    const campaign = input.campaignName
+      ? sanitizeUtmParam(input.campaignName)
+      : buildCampaignName({
+          pais: input.pais,
+          produto: input.produto,
+          macroEstrategia: input.macroEstrategia,
+          microEstrategia: input.microEstrategia,
+        })
     const content = input.identifier ? sanitizeUtmParam(input.identifier) : ''
     const term = input.canal ? sanitizeUtmParam(input.canal) : ''
 

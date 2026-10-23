@@ -1,86 +1,102 @@
-# Planejamento Técnico e Arquitetura do MVP
-## Gerador de Links UTM — Itaipu Parquetec
+# Planejamento Técnico e Arquitetura do MVP (v2.0 — Comercial / SaaS)
+## CampanhaUTM (`campanhautm.com.br`)
 
-Este documento serve como o mapa técnico do projeto, escrito de forma clara e acessível para quem tem perfil de **Web Designer** e está dando os primeiros passos no desenvolvimento de aplicações interativas.
+Este documento serve como o mapa da arquitetura técnica do **CampanhaUTM**, escrito em linguagem clara, direta e acessível para quem tem perfil de **Web Designer** e está aprendendo a desenvolver aplicações web modernas e seguras.
 
 ---
 
 ## 1. Stack Frontend
 
 ### Escolha Recomendada: **Vite + React (TypeScript)**
-*(Opção alternativa igualmente viável: Next.js 15, caso o curso exija a estrutura do App Router)*
 
-- **Por que essa escolha se encaixa perfeitamente no PRD:**  
-  O nosso produto é uma **ferramenta de uso interno (dashboard operacional)**. Ele não precisa de indexação de busca pública no Google (SEO) nem de renderização pesada no servidor para páginas públicas. O **Vite + React** é o padrão moderno da indústria para construir ferramentas rápidas e painéis: ele inicia instantaneamente no seu computador, atualiza a tela no mesmo segundo em que você altera o código (Hot Module Replacement) e possui uma curva de aprendizado muito mais suave e direta para quem vem do design.
-- **Trade-offs aceitos:**  
-  Abrimos mão da renderização prévia no servidor (SSR) e de rotas automáticas de servidor (Server Components), que seriam complexidade desnecessária para um gerador de links local. O resultado é um código muito mais fácil de ler, debugar e manter.
-- **Versão recomendada:**  
-  - Vite 6+
-  - React 18 ou 19 (com TypeScript para evitar erros comuns de digitação)
-- **O que você precisa instalar no computador:**  
-  - **Node.js (versão LTS 20 ou 22):** O ambiente que executa o JavaScript no seu sistema (baixa direto em [nodejs.org](https://nodejs.org/)).
-  - **VS Code:** O editor de código padrão da indústria.
-  - O terminal do VS Code ou PowerShell para rodar os comandos do projeto.
+Dentre as quatro alternativas analisadas:
+- **Next.js 15 (App Router):** Excelente se o produto dependesse de blogs públicos ou dezenas de páginas indexadas no Google (SEO). Como o CampanhaUTM é um **painel operacional de uso interno e fechado por login**, o Next.js adicionaria complexidade desnecessária de servidores e renderização híbrida.
+- **Vite + React:** **A escolha perfeita.** É a ferramenta padrão do mercado para construir dashboards rápidos: inicia instantaneamente, atualiza a tela no milissegundo em que você edita o código (Hot Module Replacement) e tem uma curva de aprendizado direta para quem vem do design.
+- **Astro:** Ideal para sites institucionais estáticos com pouco dinamismo. Não é indicado para um SaaS com formulários interativos e banco de dados reativo.
+- **HTML/CSS/JS puro:** Ficaria desorganizado e difícil de manter à medida que o sistema ganhasse regras de autenticação, validações e múltiplos modais.
+
+#### Por que essa escolha se encaixa perfeitamente no PRD:
+Nosso prazo de lançamento é **01/11**. Precisamos de uma stack veloz, com zero tempo de compilação pesado e que permita construir a interface com componentes visuais reutilizáveis. O Vite entrega tudo isso de forma limpa.
+
+#### Trade-offs (concessões) aceitos:
+Abrimos mão de renderização prévia no servidor (SSR), o que significa que o Google não lê os conteúdos dinâmicos dentro do painel logado (o que não tem problema nenhum, pois links e campanhas de clientes são informações privadas).
+
+#### Versões Recomendadas:
+- **Vite:** 8.x
+- **React:** 19.x (com TypeScript para evitar erros comuns de digitação de nomes de variáveis)
+
+#### O que você precisa instalado no seu computador:
+- **Node.js (LTS 20 ou 22):** O motor que executa JavaScript no seu sistema (gratuito em [nodejs.org](https://nodejs.org/)).
+- **VS Code:** O editor de código visual padrão.
+- **Git:** Para salvar e versionar seu trabalho no GitHub.
 
 ---
 
 ## 2. Estilização: Tailwind CSS + shadcn/ui
 
 ### Por que Tailwind CSS?
-Para um designer, o **Tailwind CSS** é intuitivo porque você não precisa ficar inventando nomes de classes em arquivos CSS separados (como `.box-container-wrapper-final`). Você aplica estilos direto no elemento visual usando classes utilitárias padronizadas (`flex`, `p-4`, `text-blue-600`, `rounded-lg`). Ele já vem com uma escala perfeita de espaçamentos, tipografia e cores, garantindo consistência visual de ponta a ponta sem você ter que medir pixels manualmente.
+Para quem vem do design, o **Tailwind CSS** é muito prático: em vez de criar dezenas de arquivos `.css` separados e inventar nomes difíceis de classes (como `.box-wrapper-inner-link`), você aplica o estilo diretamente no elemento visual através de classes padronizadas (`flex`, `p-4`, `text-emerald-600`, `rounded-xl`).
+- O Tailwind v4 já vem com uma escala profissional de cores, sombras e espaçamentos, impedindo que a interface fique desalinhada ou com tamanhos improvisados.
 
 ### Por que shadcn/ui?
-Ao contrário de outras bibliotecas de componentes que você instala como um pacote fechado e não consegue mudar nada, o **shadcn/ui** copia o código dos componentes diretamente para dentro da pasta do seu projeto.
-- **Vantagem para Designers:** Se você quiser alterar o raio de curvatura de um botão, a sombra de um card ou o fundo de um modal para as cores do Itaipu Parquetec, você tem 100% de controle visual.
-- **Acessibilidade nativa:** Os modais fecham no botão `Esc`, os botões têm foco acessível para teclado e os leitores de tela funcionam por padrão (em conformidade com a WCAG 2.1 AA exigida no PRD).
+Diferente de bibliotecas antigas que você instala como um bloco fechado que não pode ser customizado, o **shadcn/ui** copia o código dos componentes diretamente para dentro da sua pasta `src/components/ui/`.
+- **Controle Total de Design:** Se você quiser mudar o raio da borda de um botão, a cor de destaque da marca (`emerald`) ou a sombra de um card, o código está na sua mão.
+- **Acessibilidade Nativa (WCAG 2.1 AA):** Todos os modais fecham no `Esc`, os botões recebem foco por teclado para deficientes visuais e os leitores de tela funcionam automaticamente.
 
 ---
 
 ## 3. Backend e Banco de Dados
 
 > **O que é um "Backend"?**  
-> É o cérebro que roda nos bastidores (fora do navegador do usuário). Ele processa regras críticas de negócio, valida senhas e conversa com o banco de dados.  
+> É o cérebro que roda nos bastidores (em um servidor na nuvem), longe dos olhos do usuário. Ele processa regras confidenciais de negócio, valida se uma senha está certa e se comunica com o banco de dados.  
+>  
 > **O que é um "Banco de Dados"?**  
-> É o caderno de anotações seguro e permanente onde guardamos informações estruturadas (como a lista de projetos e o histórico de links criados) para que nada se perca quando a página for recarregada.
+> É o caderno de anotações seguro e permanente onde guardamos informações estruturadas (como a lista de usuários, projetos e links gerados) para que nada desapareça quando a página for recarregada.
 
-### Recomendação para o MVP:
-1. **Fase 1 (MVP Local Imediato):** Armazenamento em **LocalStorage com persistência reativa** ou banco local simples em arquivo JSON/SQLite.  
-   *Justificativa:* Permite que você veja a aplicação funcionando 100% no seu computador hoje mesmo, com zero dependências externas ou cadastros em plataformas de nuvem.
-2. **Fase 2 (Próximo Passo — Anexo A do Tutorial):** Migração para o **Supabase (PostgreSQL gratuito)**.  
-   *Justificativa:* O Supabase oferece um banco de dados real na nuvem com API pronta e painel visual intuitivo (parecido com uma planilha do Excel), permitindo que, futuramente, toda a equipe do Itaipu Parquetec acesse o mesmo banco de links em tempo real de qualquer lugar.
+### Recomendação: **Supabase (PostgreSQL Gerenciado)**
+- **Como funciona no tutorial:** O aluno desenvolverá o fluxo localmente e integrará o Supabase seguindo o **Anexo A**.
+- **Por que o Supabase:** Ele entrega um banco de dados relacional poderoso (PostgreSQL) com uma interface visual parecida com uma planilha do Excel. Além disso, conta com o **Row Level Security (RLS)**, garantindo que nenhum usuário consiga ver ou mexer nos links do projeto de outro usuário.
 
 ---
 
-## 4. Autenticação (Acesso Especial para Edição)
+## 4. Autenticação
 
 > **O que é Autenticação?**  
-> É o processo de conferir se a pessoa é realmente quem ela diz ser — como pedir um crachá, login e senha ou uma chave secreta antes de permitir que alguém entre em uma área reservada.
+> É o processo de conferir o crachá digital da pessoa — como pedir e-mail e senha antes de permitir que alguém acerte ou acesse uma área privada da empresa.
 
-### Recomendação:
-- **Para o MVP Local:** Como definido no PRD, qualquer pessoa da equipe pode consultar, buscar e copiar links livremente. Para a ação de **editar ou excluir um link existente**, o sistema exibirá um modal solicitando a **Chave de Acesso Especial** (uma senha mestra de edição).
-- **Evolução (Anexo A):** Quando você integrar o Supabase, usaremos o **Supabase Auth**, que gerencia login e permissões sem você precisar programar sistemas complexos de criptografia do zero.
+### Recomendação: **Supabase Auth**
+- O Supabase Auth já resolve criptografia de senhas, envio de e-mails para recuperação de senha esquecida e emissão de tokens de sessão seguros (JWT) sem você precisar programar sistemas complexos de criptografia do zero.
 
 ---
 
-## 5. Pagamentos
+## 5. Pagamentos (Monetização e Assinaturas)
 
 > **O que é um Gateway de Pagamento?**  
-> É a empresa intermediadora (como o Stripe ou Mercado Pago) que processa com segurança transações financeiras de cartão de crédito, PIX e assinaturas.
+> É a empresa financeira intermediadora (como Hotmart, Stripe ou Mercado Pago) que processa transações de cartão de crédito e Pix de forma segura, cuidando da cobrança sem que sua aplicação precise lidar com dados bancários sensíveis.
 
-- **Definição para este projeto:**  
-  **NÃO APLICÁVEL.** O Gerador de UTMs do Itaipu Parquetec é uma ferramenta de uso interno institucional e 100% gratuita. O Anexo B do tutorial de pagamentos está dispensado deste escopo.
+### Recomendação Principal: **Hotmart (com suporte a Webhooks)**
+*(Opção secundária internacional: Stripe)*
+
+#### Por que a Hotmart faz tanto sentido para o CampanhaUTM no Brasil?
+1. **Confiança e Familiaridade:** Todo gestor de tráfego, agência e produtor de marketing digital no Brasil já possui cadastro ou compra frequentemente pela Hotmart.
+2. **Pix Instantâneo:** No Brasil, o Pix é responsável por mais de 50% das contratações rápidas de ferramentas e infoprodutos. A Hotmart gerencia o Pix nativamente com compensação em segundos.
+3. **Cartão de Crédito Nacional e Parcelamento:** Aceita cartões emitidos no Brasil sem risco de bloqueio de compras internacionais.
+4. **Checkout Hospedado:** Você não precisa programar telas de cartão de crédito nem se preocupar com certificações bancárias (PCI-DSS). Ao clicar em "Assinar Plano Pro", o usuário vai para o checkout oficial da Hotmart.
+5. **Webhooks Automáticos:** Assim que o cliente paga na Hotmart, a Hotmart envia um aviso automático (*webhook*) para a sua aplicação dizendo: `"O e-mail rodrigo@agencia.com.br pagou o plano Pro"`. O sistema atualiza o perfil do usuário para `plan: 'pro'` no mesmo instante!
 
 ---
 
 ## 6. Hospedagem (Planejamento Futuro)
 
 > **O que é Hospedagem?**  
-> É o computador especial ("servidor") conectado à internet 24 horas por dia para onde você envia os arquivos do seu site, para que qualquer pessoa do mundo consiga acessá-lo através de um link público.
+> É o computador especial ("servidor") conectado à internet 24 horas por dia para onde enviamos os arquivos do site, para que qualquer pessoa consiga acessá-lo através de um link público como `campanhautm.com.br`.
 
-- **Durante o desenvolvimento do MVP:**  
-  O aplicativo rodará **100% na sua máquina local (`http://localhost:5173`)**. Você não gasta nada e não precisa configurar servidores.
-- **Quando for publicar na internet (Anexo C):**  
-  A recomendação padrão será a **Vercel** (ou GitHub Pages). A Vercel se conecta diretamente ao seu repositório no GitHub: toda vez que você envia uma alteração, ela constrói o site automaticamente, gera um link público seguro com HTTPS (cadeado verde) e oferece um plano gratuito generoso para projetos desse porte.
+- **Durante o Desenvolvimento do MVP:** O aplicativo roda **100% no seu computador (`http://localhost:5174/`)**. Você não gasta nada e não precisa configurar servidores agora.
+- **Quando for Publicar na Internet (Anexo C do Tutorial):** A recomendação oficial é a **Vercel**:
+  - Gratuita para começar.
+  - Conecta-se diretamente ao seu GitHub: a cada novo commit, ela atualiza o site na internet automaticamente.
+  - Gera certificado de segurança HTTPS (cadeado verde) automático.
+  - Fornece funções serverless para receber os webhooks da Hotmart com estabilidade.
 
 ---
 
@@ -88,108 +104,104 @@ Ao contrário de outras bibliotecas de componentes que você instala como um pac
 
 | Biblioteca | O que ela faz em 1 linha | Por que é necessária no nosso MVP |
 | :--- | :--- | :--- |
-| **`react-hook-form`** | Gerencia formulários sem travar ou deixar a digitação lenta. | O formulário de UTM tem vários campos e precisa responder rápido. |
-| **`zod`** | Validador de dados com regras de segurança rígidas. | Garante que a URL seja válida e que os campos obrigatórios estejam preenchidos antes de salvar. |
-| **`lucide-react`** | Pacote moderno de ícones vetoriais leves e elegantes. | Ícones de copiar, check, editar, lixeira, pastas de projetos e download. |
-| **`sonner`** | Sistema de alertas rápidos e elegantes ("Toasts"). | Avisa o usuário na tela quando o link for "Copiado com sucesso!" ou "Salvo com sucesso". |
-| **`clsx` + `tailwind-merge`** | Utilitário (`cn`) para combinar classes CSS do Tailwind dinamicamente. | Obrigatório para o funcionamento correto e sem conflitos dos componentes shadcn/ui. |
+| **`react-hook-form`** | Gerencia os campos dos formulários sem travar a digitação do usuário. | O construtor de UTM tem vários campos e precisa responder de forma instantânea. |
+| **`zod`** | Validador rigoroso de dados com regras de segurança. | Impede e-mails inválidos, senhas fracas ou URLs quebradas antes de salvar. |
+| **`@supabase/supabase-js`** | Biblioteca oficial que conversa com o banco e autenticação do Supabase. | Permite cadastrar usuários, logar e ler projetos isolados via RLS. |
+| **`lucide-react`** | Coleção moderna e consistente de ícones vetoriais em SVG. | Ícones visuais de copiar, pastas, cadeado de edição, check e download. |
+| **`sonner`** | Sistema de notificações flutuantes e elegantes ("Toasts"). | Mostra avisos de sucesso imediatos ("Link copiado!", "Projeto criado com sucesso"). |
+| **`clsx` + `tailwind-merge`** | Utilitário (`cn`) para combinar e concatenar classes do Tailwind dinamicamente. | Essencial para o funcionamento correto dos componentes do shadcn/ui. |
 
 ---
 
-## 8. Estrutura de Pastas do Projeto
-
-A organização das pastas foi pensada para ser limpa e fácil de navegar:
+## 8. Estrutura de Pastas
 
 ```
-gerador-utm-itaipu-parquetec/
-├── public/                 # Arquivos estáticos (logo do Itaipu Parquetec, favicons)
+utms-generator-facil/
+├── public/                  # Arquivos estáticos servidos diretamente (logo, favicons)
+├── docs/                    # Documentação técnica e roteiros de testes manuais
+│   └── tests/               # Guias passo a passo para o aluno testar no navegador
+├── supabase/                # Scripts SQL e configurações do banco de dados na nuvem
+│   └── schema.sql           # Tabelas e regras de segurança (RLS) para colar no Supabase
 ├── src/
-│   ├── assets/             # Imagens e ícones locais da aplicação
-│   ├── components/         # Pedaços visuais reutilizáveis da interface
-│   │   ├── ui/             # Componentes base do shadcn (botões, inputs, modais, cards)
-│   │   ├── ProjectSelector.tsx  # Seletor e criador de Projetos
-│   │   ├── UtmBuilder.tsx       # Formulário com higienização e preview de UTM
-│   │   ├── TaxonomyRules.tsx    # Card visual com as regras e exemplos para a equipe
-│   │   ├── LinksTable.tsx       # Tabela histórica com busca, cópia e ações
-│   │   ├── EditLinkModal.tsx    # Modal protegido por senha para editar links
-│   │   └── ExportModal.tsx      # Modal para baixar o arquivo HTML ou CSV
-│   ├── lib/                # Funções de apoio e lógica que não têm parte visual
-│   │   ├── utm-sanitizer.ts     # A função que transforma textos em minúsculas e hífens
-│   │   ├── html-exporter.ts     # A função que monta o arquivo HTML estático para o time de conteúdo
-│   │   ├── csv-exporter.ts      # A função que gera o arquivo de planilha CSV
-│   │   └── storage.ts           # A camada que lê e salva os dados no banco/storage
-│   ├── types/              # Definições do formato dos dados (Projeto, Link, etc.)
+│   ├── assets/              # Imagens e ilustrações locais da aplicação
+│   ├── components/          # Pedaços visuais reutilizáveis da interface
+│   │   ├── ui/              # Componentes base do shadcn (botões, inputs, cards, modais)
+│   │   ├── AuthView.tsx     # Tela visual de Login, Cadastro e Recuperação de Senha
+│   │   ├── Header.tsx       # Cabeçalho com logo, seletor de projetos, perfil e logout
+│   │   ├── UtmBuilder.tsx   # Formulário com higienização em tempo real e preview de UTM
+│   │   ├── LinksTable.tsx   # Tabela histórica com busca rápida, cópia em 1 clique e ações
+│   │   ├── TaxonomyRules.tsx# Card visual com as regras e convenções do Itaipu Parquetec/GA4
+│   │   ├── ProjectModal.tsx # Modal para cadastrar novas pastas de campanhas
+│   │   ├── EditLinkModal.tsx# Modal protegido para alterar parâmetros de links existentes
+│   │   └── ExportModal.tsx  # Modal para baixar o arquivo HTML autônomo ou planilha CSV
+│   ├── contexts/            # Estados globais compartilhados da aplicação
+│   │   └── AuthContext.tsx  # Gerenciador global de usuário logado e sessão ativa
+│   ├── lib/                 # Funções lógicas e utilitárias sem parte visual
+│   │   ├── validations/     # Schemas Zod de segurança (auth.ts, utm.ts)
+│   │   ├── supabase.ts      # Conexão segura com a API do Supabase
+│   │   ├── utm-sanitizer.ts # A lógica que converte textos em minúsculas, hífens e sem acentos
+│   │   ├── html-exporter.ts # Gera o arquivo HTML offline para os criadores de conteúdo
+│   │   ├── csv-exporter.ts  # Gera a planilha CSV para download
+│   │   ├── storage.ts       # Camada de persistência multi-tenant (com suporte local e nuvem)
+│   │   └── utils.ts         # Utilitário 'cn' para estilos do Tailwind
+│   ├── types/               # Definições TypeScript do formato dos dados (Project, UtmLink)
 │   │   └── index.ts
-│   ├── App.tsx             # A página principal que junta todos os blocos visuais
-│   ├── main.tsx            # O ponto de entrada que inicializa o React
-│   └── index.css           # Configurações do Tailwind CSS e fontes
-├── .env.example            # Modelo das variáveis de configuração (sem senhas reais)
-├── index.html              # O HTML principal do navegador
-├── package.json            # Lista de dependências e comandos do projeto
-└── vite.config.ts          # Configuração do Vite
+│   ├── App.tsx              # Componente principal que junta todos os blocos na tela
+│   ├── main.tsx             # Ponto de entrada que inicializa o React e o AuthProvider
+│   └── index.css            # Estilos globais e importação do Tailwind CSS v4
+├── .env.example             # Modelo das variáveis de configuração (sem senhas reais)
+├── package.json             # Lista de dependências e comandos do projeto
+└── vite.config.ts           # Configuração do Vite e apelidos de importação (@/)
 ```
 
 ---
 
 ## 9. Variáveis de Ambiente (`.env`)
 
-Variáveis de ambiente são configurações que mudam conforme o lugar onde o sistema está rodando (na sua máquina ou na nuvem), mantendo segredos longe do código compartilhado.
+As variáveis de ambiente guardam configurações que mudam de acordo com o ambiente (no seu computador ou na internet), mantendo segredos longe do código compartilhado no GitHub.
 
-```env
-# ==========================================================
-# VARIÁVEIS PÚBLICAS (Acessíveis pelo navegador)
-# ==========================================================
-VITE_APP_TITLE="Gerador de Links UTM — Itaipu Parquetec"
-VITE_DEFAULT_PROJECT_NAME="Geral"
+### 9.1. Variáveis Públicas (Podem ser lidas pelo navegador do usuário)
+No Vite, variáveis públicas começam obrigatoriamente com o prefixo `VITE_`:
 
-# ==========================================================
-# VARIÁVEIS SECRETAS / OPERACIONAIS (Configurações restritas)
-# ==========================================================
-# Senha mestra inicial para habilitar o modo de edição de links no MVP Local
-VITE_EDITOR_MASTER_KEY="parquetec2026"
-```
+| Variável | O que é | Onde obter | Consequência se for pública |
+| :--- | :--- | :--- | :--- |
+| `VITE_APP_TITLE` | Título oficial que aparece na aba do navegador. | Definido por você no `.env`. | Nenhuma. É um dado puramente visual. |
+| `VITE_SUPABASE_URL` | O endereço web do seu projeto no Supabase. | No painel do Supabase: *Project Settings > API*. | Nenhuma. É pública por padrão; a segurança é feita pelas regras RLS do banco. |
+| `VITE_SUPABASE_ANON_KEY` | Chave pública anônima do cliente Supabase. | No painel do Supabase: *Project Settings > API*. | Nenhuma, pois ela só tem permissão para o que as políticas RLS permitirem. |
+| `VITE_HOTMART_CHECKOUT_PRO` | Link direto do checkout do plano Pro na Hotmart. | No painel da Hotmart: *Produtos > Links de Divulgação*. | Nenhuma. É o link público onde o cliente clica para pagar. |
 
-### Explicação de Segurança:
-1. **Públicas (`VITE_...` informativos):**  
-   - *O que são:* Textos como nome da ferramenta ou preferências de layout.  
-   - *Risco se vazar:* Nenhum.
-2. **Chave de Edição (`VITE_EDITOR_MASTER_KEY`):**  
-   - *O que é:* A senha que o usuário digita para liberar o modal de edição de um link no MVP local.  
-   - *Consequência se vazar:* Qualquer colaborador com acesso ao código local poderia editar ou excluir links cadastrados por engano. *(Na Fase 2 com Supabase, essa senha simples será substituída pelo Supabase Auth com login individual e seguro)*.
+### 9.2. Variáveis Secretas (NUNCA podem ir para o navegador — apenas no servidor / Vercel)
+Essas variáveis **NUNCA** devem ter o prefixo `VITE_` e devem ser guardadas exclusivamente no servidor:
+
+| Variável | O que é | Onde obter | Consequência se vazar |
+| :--- | :--- | :--- | :--- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave mestra do Supabase que ignora as regras do RLS. | No painel do Supabase: *Project Settings > API*. | **CRÍTICA:** Se vazar, um atacante pode ler, alterar ou apagar todos os dados de todos os usuários do banco! |
+| `HOTMART_WEBHOOK_TOKEN` | Token secreto de validação enviado pela Hotmart nos webhooks. | No painel da Hotmart: *Ferramentas > Webhook (API)*. | **ALTA:** Se vazar, uma pessoa mal-intencionada poderia forjar pagamentos falsos e liberar planos pagos de graça. |
 
 ---
 
 ## 10. Riscos Técnicos e Como Mitigá-los
 
-1. **Risco 1: Quebra de URLs já existentes com parâmetros prévios**  
-   *O Problema:* Se a página de destino já tiver um ponto de interrogação (ex: `https://site.com/evento?id=123`), concatenar com outro `?` quebra a URL.  
-   *Mitigação:* Usar a API nativa de URLs do navegador (`new URL()`), que insere `?` ou `&` de forma matematicamente perfeita.
-2. **Risco 2: Perda de dados no navegador ao limpar cache (na Fase Local)**  
-   *O Problema:* Se o colaborador limpar os dados de navegação do Chrome, o histórico do LocalStorage local pode ser apagado.  
-   *Mitigação:* Criar um alerta amigável na interface recomendando o backup via botão "Exportar CSV", preparando a transição suave para o Supabase (Anexo A).
-3. **Risco 3: Falha na exportação do HTML autônomo para a equipe de conteúdo**  
-   *O Problema:* O arquivo HTML exportado ficar com visual quebrado em computadores sem internet.  
-   *Mitigação:* O gerador do arquivo `html-exporter.ts` embutirá os estilos CSS essenciais diretamente dentro da tag `<style>` do próprio arquivo gerado. Ele abrirá com design perfeito em qualquer computador, mesmo sem internet!
+1. **Risco 1: Quebra de Isolamento entre Clientes (Vazamento de Projetos)**
+   - *O que é:* O usuário da Agência A conseguir visualizar os links e campanhas da Agência B.
+   - *Como mitigar:* Ativação obrigatória do **Row Level Security (RLS)** em todas as tabelas do Supabase (`projects` e `utm_links`) com a condição `auth.uid() = user_id`. Nenhuma linha é devolvida se o usuário não for o dono legítimo.
+2. **Risco 2: Falha na Entrega de Webhook da Hotmart (Cliente pagou mas não liberou o plano)**
+   - *O que é:* O cliente paga via Pix na Hotmart, mas a internet da Vercel oscila e o webhook falha no recebimento.
+   - *Como mitigar:* Implementar um endpoint de webhook idempotente que registra as tentativas e configurar a função de reenvio automático (*retry*) oferecida nativamente pela Hotmart.
+3. **Risco 3: URLs Inválidas ou Caracteres Proibidos Quebrarem o GA4**
+   - *O que é:* O usuário digitar parâmetros com acentos (`promoção`), espaços ou interrogações mal posicionadas que dividem a URL.
+   - *Como mitigar:* Validação dupla: o formulário higieniza em tempo real enquanto o usuário digita através do [`utm-sanitizer.ts`](file:///c:/xampp/htdocs/utms-generator-facil/src/lib/utm-sanitizer.ts) e a camada de persistência revalida com Zod antes de gravar.
+4. **Risco 4: Bloqueio de Acesso com Mudança de Portas Locais**
+   - *O que é:* O aluno já ter outro projeto rodando na porta 5173 do XAMPP e o Vite tentar abrir em outra porta sem aviso.
+   - *Como mitigar:* Fixamos explicitamente a porta `5174` no [`vite.config.ts`](file:///c:/xampp/htdocs/utms-generator-facil/vite.config.ts) para evitar conflitos de portas com outros projetos do XAMPP.
 
 ---
 
 ## 11. Ordem de Implementação Recomendada
 
-Cada etapa constrói a base necessária para a seguinte:
-
-1. **Etapa 3: Setup do Ambiente**  
-   Criar a estrutura do Vite + React + Tailwind CSS e inicializar o repositório Git local.
-2. **Etapa 4: Interface (UI) e Componentes Base**  
-   Criar o layout profissional com o cabeçalho do Itaipu Parquetec, o seletor de projetos e os cards estruturais com shadcn/ui.
-3. **Etapa 5: Features Core (MVP)**  
-   - Construir o formulário de UTM com sanitização em tempo real (minúsculas, sem acentos, hífens).
-   - Implementar o painel visual com as regras de taxonomia.
-   - Criar o banco de links com histórico, busca e botão de cópia.
-   - Implementar a exportação de arquivo HTML estático autônomo e CSV.
-   - Proteger a edição com o modal de chave especial.
-4. **Etapa 6: Testes e Validação**  
-   Testar casos extremos de digitação de URLs, caracteres especiais e validação de cópia.
-5. **Etapa 7: Auditoria de Segurança**  
-   Verificar higienização de inputs e integridade dos dados.
-6. **Etapa 8: Pós-MVP e Transição para Anexos**  
-   Preparação para persistência em nuvem (Anexo A - Supabase) e publicação (Anexo C - Vercel).
+1. **Etapa 1 — Setup e Validações Seguras:** Configurar Vite, TypeScript, Tailwind CSS e schemas Zod. *(Concluída)*
+2. **Etapa 2 — Feature 1: Autenticação e Multi-Tenancy:** Cadastro, login, recuperação de senha, telas visuais e isolamento de projetos por conta. *(Concluída)*
+3. **Etapa 3 — Feature 2: Gestão de Planos & Assinaturas Hotmart:** Modal de limites de uso, tabela visual de planos, redirecionamento para o checkout Hotmart e endpoint para receber notificações de pagamento. *(Próximo passo)*
+4. **Etapa 4 — Feature 3: Construtor Avançado e Banco de Links:** Refinamento do gerador com atalhos de canais comuns e exportação (HTML/CSV). *(Concluída no MVP local)*
+5. **Etapa 5 — Conexão Supabase na Nuvem (Anexo A):** Execução do script `supabase/schema.sql` e preenchimento das chaves no `.env`.
+6. **Etapa 6 — Publicação na Internet via Vercel (Anexo C):** Subir para a internet com domínio próprio `campanhautm.com.br` e HTTPS ativo.

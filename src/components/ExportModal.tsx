@@ -1,6 +1,5 @@
-import { Globe, FileSpreadsheet, Download, FileJson } from 'lucide-react'
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Globe, FileSpreadsheet, Download, FileJson, Lock } from 'lucide-react'
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogClose } from '@/components/ui/dialog'
 import { exportProjectToStandaloneHtml } from '@/lib/html-exporter'
 import { exportProjectToCsv } from '@/lib/csv-exporter'
 import { exportFullBackup } from '@/lib/storage'
@@ -11,12 +10,28 @@ interface ExportModalProps {
   onOpenChange: (open: boolean) => void
   project: Project | undefined
   links: UtmLink[]
+  userPlan?: string
+  onRequireUpgrade?: (reason: 'project' | 'link' | 'html_export') => void
 }
 
-export function ExportModal({ open, onOpenChange, project, links }: ExportModalProps) {
+export function ExportModal({
+  open,
+  onOpenChange,
+  project,
+  links,
+  userPlan = 'free',
+  onRequireUpgrade,
+}: ExportModalProps) {
   if (!project) return null
 
+  const isFreePlan = userPlan === 'free'
+
   const handleExportHtml = () => {
+    if (isFreePlan && onRequireUpgrade) {
+      onOpenChange(false)
+      onRequireUpgrade('html_export')
+      return
+    }
     exportProjectToStandaloneHtml(project, links)
     onOpenChange(false)
   }
@@ -59,69 +74,76 @@ export function ExportModal({ open, onOpenChange, project, links }: ExportModalP
         <button
           type="button"
           onClick={handleExportHtml}
-          className="w-full p-4 rounded-2xl border-2 border-sky-200 bg-sky-50/50 hover:bg-sky-50 hover:border-sky-400 text-left transition-all flex items-start gap-4 group cursor-pointer"
+          className="w-full p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-400 text-left transition-all flex items-start gap-4 group cursor-pointer relative"
         >
-          <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20 group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-600/20 group-hover:scale-105 transition-transform">
             <Globe className="w-5 h-5" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-900 group-hover:text-sky-700">
+              <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-700">
                 Guia em HTML Autônomo
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">
-                Recomendado para Conteúdo
-              </span>
+              {isFreePlan ? (
+                <span className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" /> RECURSO PRO
+                </span>
+              ) : (
+                <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+                  Recomendado para Conteúdo
+                </span>
+              )}
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Gera um arquivo <code>.html</code> estático com o guia visual de regras e botões de "Copiar Link".
-              Os redatores e designers podem abrir no navegador em qualquer computador sem precisar de internet ou servidor.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Gera um arquivo <code>.html</code> independente e bonito com a tabela completa e botões
+              de cópia rápida para redatores e designers abrirem no navegador sem login.
             </p>
           </div>
         </button>
 
-        {/* OPÇÃO 2: PLANILHA CSV */}
+        {/* OPÇÃO 2: PLANILHA CSV (COMPATÍVEL COM EXCEL / SHEETS) */}
         <button
           type="button"
           onClick={handleExportCsv}
-          className="w-full p-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-left transition-all flex items-start gap-4 group cursor-pointer"
+          className="w-full p-4 rounded-2xl border-2 border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300 text-left transition-all flex items-start gap-4 group cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-slate-700 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
             <FileSpreadsheet className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-700">
+              <span className="text-sm font-bold text-slate-900 group-hover:text-slate-800">
                 Planilha CSV (Excel / Google Sheets)
+              </span>
+              <span className="text-[10px] bg-slate-200 text-slate-700 font-semibold px-2 py-0.5 rounded-full">
+                Disponível no Free
               </span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Baixa a tabela estruturada com separador compatível e codificação UTF-8 BOM para abrir sem erros de acentuação no Microsoft Excel.
+              Baixa uma planilha com todas as colunas de taxonomia, datas de criação e parâmetros UTM formatados.
             </p>
           </div>
         </button>
 
-        {/* OPÇÃO 3: BACKUP TOTAL JSON */}
+        {/* OPÇÃO 3: BACKUP JSON COMPLETO */}
         <button
           type="button"
           onClick={handleExportJson}
-          className="w-full p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-100 text-left transition-all flex items-center gap-3 group cursor-pointer"
+          className="w-full p-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition-all flex items-start gap-4 group cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
-            <FileJson className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-105 transition-transform">
+            <FileJson className="w-5 h-5" />
           </div>
-          <div>
-            <span className="text-xs font-semibold text-slate-800">Backup Completo do Banco (JSON)</span>
-            <p className="text-[11px] text-slate-500">Salva todos os projetos e links para restauração local futura.</p>
+          <div className="space-y-1">
+            <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900">
+              Backup Completo em JSON
+            </span>
+            <p className="text-xs text-slate-400">
+              Arquivo estruturado contendo todos os projetos e links armazenados localmente para recuperação de dados.
+            </p>
           </div>
         </button>
       </div>
-
-      <DialogFooter>
-        <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-          Fechar
-        </Button>
-      </DialogFooter>
     </Dialog>
   )
 }
