@@ -31,14 +31,50 @@ function setToStorage<T>(key: string, value: T): void {
 }
 
 export function initStorage(): void {
-  if (!localStorage.getItem(STORAGE_KEYS.PROJECTS)) {
-    setToStorage(STORAGE_KEYS.PROJECTS, INITIAL_PROJECTS)
+  // Garantia de recuperação: se a chave clean estiver vazia, tenta recuperar de versões anteriores
+  const currentProjects = localStorage.getItem(STORAGE_KEYS.PROJECTS)
+  if (!currentProjects || currentProjects === '[]') {
+    const legacyKeys = ['utm_itaipu_projects_v2', 'utm_itaipu_projects']
+    for (const lk of legacyKeys) {
+      const oldData = localStorage.getItem(lk)
+      if (oldData && oldData !== '[]') {
+        try {
+          const parsed = JSON.parse(oldData)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.PROJECTS, oldData)
+            break
+          }
+        } catch {}
+      }
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.PROJECTS)) {
+      setToStorage(STORAGE_KEYS.PROJECTS, INITIAL_PROJECTS)
+    }
   }
-  if (!localStorage.getItem(STORAGE_KEYS.LINKS)) {
-    setToStorage(STORAGE_KEYS.LINKS, INITIAL_LINKS)
+
+  const currentLinks = localStorage.getItem(STORAGE_KEYS.LINKS)
+  if (!currentLinks || currentLinks === '[]') {
+    const legacyLinkKeys = ['utm_itaipu_links_v2', 'utm_itaipu_links']
+    for (const lk of legacyLinkKeys) {
+      const oldLinks = localStorage.getItem(lk)
+      if (oldLinks && oldLinks !== '[]') {
+        try {
+          const parsed = JSON.parse(oldLinks)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.LINKS, oldLinks)
+            break
+          }
+        } catch {}
+      }
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.LINKS)) {
+      setToStorage(STORAGE_KEYS.LINKS, INITIAL_LINKS)
+    }
   }
+
   if (!localStorage.getItem(STORAGE_KEYS.ACTIVE_PROJECT)) {
-    setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, '')
+    const projects = getFromStorage<Project[]>(STORAGE_KEYS.PROJECTS, [])
+    setToStorage(STORAGE_KEYS.ACTIVE_PROJECT, projects.length > 0 ? projects[0].id : '')
   }
 }
 
