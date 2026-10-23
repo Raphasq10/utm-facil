@@ -16,24 +16,33 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { 
-  Lock, 
-  Mail, 
-  User, 
-  ArrowRight, 
-  CheckCircle2, 
-  KeyRound, 
-  Loader2, 
+import {
+  Lock,
+  Mail,
+  User,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  KeyRound,
+  Loader2,
   Sparkles,
   ShieldCheck,
   Zap,
-  FolderKanban
+  FolderKanban,
 } from 'lucide-react'
 
 type AuthMode = 'login' | 'signup' | 'reset'
 
-export const AuthView: React.FC = () => {
-  const [mode, setMode] = useState<AuthMode>('login')
+interface AuthViewProps {
+  initialMode?: 'login' | 'signup'
+  onBackToLanding?: () => void
+}
+
+export const AuthView: React.FC<AuthViewProps> = ({
+  initialMode = 'login',
+  onBackToLanding,
+}) => {
+  const [mode, setMode] = useState<AuthMode>(initialMode)
   const { signIn, signUp, resetPassword, isDemoMode } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -59,7 +68,7 @@ export const AuthView: React.FC = () => {
   const watchedSignupPassword = signupForm.watch('password')
   const passwordStrength = calculatePasswordStrength(watchedSignupPassword || '')
 
-  // Handlers de submissão com proteção contra Race Conditions (duplo clique)
+  // Handlers de submissão com proteção contra Race Conditions
   const handleLoginSubmit = async (data: LoginFormData) => {
     if (isSubmitting) return
     setIsSubmitting(true)
@@ -107,7 +116,21 @@ export const AuthView: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-zinc-100 to-emerald-50/40 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/20 flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-zinc-100 to-emerald-50/40 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/20 flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white relative">
+      {/* Botão de Retorno à Landing Page */}
+      {onBackToLanding && (
+        <div className="w-full max-w-4xl mb-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onBackToLanding}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar para a Página Inicial
+          </button>
+        </div>
+      )}
+
       {/* Banner de Demonstração quando Supabase ainda não estiver conectado no .env */}
       {isDemoMode && (
         <div className="w-full max-w-4xl mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
@@ -259,7 +282,7 @@ export const AuthView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setMode('signup')}
-                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
                 >
                   Cadastre-se grátis
                 </button>
@@ -408,7 +431,7 @@ export const AuthView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setMode('login')}
-                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
                 >
                   Entrar
                 </button>
@@ -472,7 +495,7 @@ export const AuthView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setMode('login')}
-                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
                 >
                   Voltar para o Login
                 </button>

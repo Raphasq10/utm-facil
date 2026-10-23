@@ -9,6 +9,7 @@ import { ProjectModal } from '@/components/ProjectModal'
 import { EditLinkModal } from '@/components/EditLinkModal'
 import { ExportModal } from '@/components/ExportModal'
 import { AuthView } from '@/components/AuthView'
+import { LandingPage } from '@/components/LandingPage'
 import { PricingModal } from '@/components/PricingModal'
 import { UpgradePromptModal } from '@/components/UpgradePromptModal'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,10 @@ export function App() {
   const [activeProjectId, setActiveId] = useState<string>('')
   const [links, setLinks] = useState<UtmLink[]>([])
   const [isEditor, setIsEditor] = useState<boolean>(false)
+
+  // Controle de Navegação Pública (Landing Page vs Login/Cadastro)
+  const [publicView, setPublicView] = useState<'landing' | 'auth'>('landing')
+  const [authInitialTab, setAuthInitialTab] = useState<'login' | 'signup'>('login')
 
   // Modais Funcionais
   const [projectModalOpen, setProjectModalOpen] = useState(false)
@@ -247,12 +252,37 @@ export function App() {
     )
   }
 
-  // 2. Bloqueio de Rotas Privadas: se não houver usuário autenticado, exibe o Login/Cadastro
+  // 2. Experiência Pública: Landing Page de alta conversão ou Login/Cadastro
   if (!user) {
+    if (publicView === 'landing') {
+      return (
+        <>
+          <Toaster position="top-right" richColors closeButton />
+          <LandingPage
+            onLogin={() => {
+              setAuthInitialTab('login')
+              setPublicView('auth')
+            }}
+            onSignup={() => {
+              setAuthInitialTab('signup')
+              setPublicView('auth')
+            }}
+            onSelectPlan={(_plan) => {
+              setAuthInitialTab('signup')
+              setPublicView('auth')
+            }}
+          />
+        </>
+      )
+    }
+
     return (
       <>
         <Toaster position="top-right" richColors closeButton />
-        <AuthView />
+        <AuthView
+          initialMode={authInitialTab}
+          onBackToLanding={() => setPublicView('landing')}
+        />
       </>
     )
   }
