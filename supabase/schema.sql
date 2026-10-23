@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT profiles_email_length_check CHECK (char_length(email) BETWEEN 3 AND 255),
-  CONSTRAINT profiles_full_name_length_check CHECK (full_name IS NULL OR char_length(full_name) BETWEEN 1 AND 100),
+  CONSTRAINT profiles_full_name_length_check CHECK (full_name IS NULL OR char_length(full_name) BETWEEN 0 AND 100),
   CONSTRAINT profiles_avatar_url_length_check CHECK (avatar_url IS NULL OR char_length(avatar_url) BETWEEN 1 AND 1000),
   CONSTRAINT profiles_plan_valid_check CHECK (plan IN ('free', 'pro', 'agency'))
 );
@@ -46,7 +46,7 @@ BEGIN
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    NULLIF(TRIM(COALESCE(NEW.raw_user_meta_data->>'full_name', '')), ''),
     'free'
   );
   RETURN NEW;
