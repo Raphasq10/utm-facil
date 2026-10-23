@@ -7,15 +7,19 @@ export interface AuthUser {
   email: string
   fullName: string
   plan: 'free' | 'pro' | 'agency'
+  emailConfirmed: boolean
 }
 
 interface AuthContextType {
   user: AuthUser | null
   loading: boolean
   isDemoMode: boolean
+  needsEmailVerification: boolean
   signIn: (data: LoginFormData) => Promise<{ success: boolean; error?: string }>
   signUp: (data: SignupFormData) => Promise<{ success: boolean; error?: string; message?: string }>
   resetPassword: (data: ResetPasswordFormData) => Promise<{ success: boolean; error?: string; message?: string }>
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; error?: string }>
+  resendConfirmationEmail: (email: string) => Promise<{ success: boolean; error?: string }>
   signOut: () => Promise<void>
   updateUserPlan: (newPlan: 'free' | 'pro' | 'agency') => Promise<void>
 }
@@ -24,19 +28,6 @@ const LOCAL_STORAGE_AUTH_KEY = 'campanhautm_auth_session'
 const LOCAL_STORAGE_USERS_KEY = 'campanhautm_demo_users'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-// Tradução amigável dos erros do Supabase para Português
-function translateSupabaseError(errorMsg: string): string {
-  const lower = errorMsg.toLowerCase()
-  if (lower.includes('invalid login credentials')) return 'E-mail ou senha incorretos. Verifique suas credenciais.'
-  if (lower.includes('user already registered')) return 'Já existe uma conta cadastrada com este e-mail.'
-  if (lower.includes('email not confirmed')) return 'Por favor, confirme seu e-mail antes de fazer login.'
-  if (lower.includes('password is too short') || lower.includes('at least 6 characters')) {
-    return 'A senha é muito curta. Use pelo menos 8 caracteres.'
-  }
-  if (lower.includes('rate limit')) return 'Muitas tentativas em pouco tempo. Aguarde alguns minutos.'
-  return 'Ocorreu um erro ao processar sua solicitação. Tente novamente.'
-}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -56,11 +47,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (isMounted) {
             if (session?.user) {
+              const isConfirmed = Boolean(session.user.email_confirmed_at || session.user.confirmed_at)
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
                 fullName: (session.user.user_metadata?.full_name as string) || session.user.email?.split('@')[0] || 'Usuário',
                 plan: 'free',
+                emailConfirmed: isConfirmed,
               })
             } else {
               setUser(null)
@@ -89,15 +82,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeAuth()
 
-    // Se o Supabase estiver configurado, escuta mudanças em tempo real (login, logout, refresh de token)
+    // Escuta mudanças de autenticação em tempo real no Supabase
     if (isSupabaseConfigured && supabase) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
+          const isConfirmed = Boolean(session.user.email_confirmed_at || session.user.confirmed_at)
           setUser({
             id: session.user.id,
             email: session.user.email || '',
             fullName: (session.user.user_metadata?.full_name as string) || session.user.email?.split('@')[0] || 'Usuário',
             plan: 'free',
+            emailConfirmed: isConfirmed,
           })
         } else {
           setUser(null)
@@ -115,20 +110,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [])
 
-  // 2. Ação de Login (Sign In)
+  // 2. Ação de Login (Sign In) com Mensagem Genérica Estrita de Segurança
   const signIn = useCallback(async (data: LoginFormData): Promise<{ success: boolean; error?: string }> => {
-    // Defesa contra Mass Assignment: extrai explicitamente apenas os campos esperados
     const { email, password } = data
 
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) {
-          return { success: false, error: translateSupabaseError(error.message) }
+          // Regra de Segurança: NUNCA revelar se o e-mail existe ou se a senha estava errada
+          return { success: false, error: 'Email ou senha inválidos' }
         }
         return { success: true }
       } catch {
-        return { success: false, error: 'Erro de conexão com o servidor. Tente novamente mais tarde.' }
+        return { success: false, error: 'Email ou senha inválidos' }
       }
     } else {
       // Simulação no Modo Demo Local
@@ -137,9 +132,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase())
 
       if (!found || found.passwordHash !== password) {
-        // Simula pequena latência de rede para testes realistas
         await new Promise((r) => setTimeout(r, 400))
-        return { success: false, error: 'E-mail ou senha incorretos. (Dica no modo demo: crie uma conta primeiro).' }
+        // Mensagem genérica mesmo em demo
+        return { success: false, error: 'Email ou senha inválidos' }
       }
 
       const activeUser: AuthUser = {
@@ -147,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: found.email,
         fullName: found.fullName,
         plan: found.plan || 'free',
+        emailConfirmed: true,
       }
       localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(activeUser))
       setUser(activeUser)
@@ -154,9 +150,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [])
 
-  // 3. Ação de Cadastro (Sign Up)
+  // 3. Ação de Cadastro (Sign Up) com Honeypot Anti-Bot
   const signUp = useCallback(async (data: SignupFormData): Promise<{ success: boolean; error?: string; message?: string }> => {
-    // Defesa contra Mass Assignment
+    // Regra de Segurança: Honeypot Anti-Bot invisível
+    if (data.website && data.website.trim().length > 0) {
+      // Rejeita silenciosamente sem processar
+      return {
+        success: true,
+        message: 'Cadastro recebido com sucesso! Verifique sua caixa de entrada para confirmar o e-mail.',
+      }
+    }
+
     const { email, password, fullName } = data
 
     if (isSupabaseConfigured && supabase) {
@@ -166,25 +170,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           password,
           options: {
             data: { full_name: fullName },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         })
         if (error) {
-          return { success: false, error: translateSupabaseError(error.message) }
+          const lower = error.message.toLowerCase()
+          // Resposta graciosa se o e-mail já existir
+          if (lower.includes('already registered')) {
+            return {
+              success: false,
+              error: 'Não foi possível concluir o cadastro com este e-mail. Se já possui conta, faça login.',
+            }
+          }
+          return { success: false, error: 'Erro ao processar cadastro. Tente novamente mais tarde.' }
         }
         return {
           success: true,
           message: 'Cadastro realizado com sucesso! Verifique sua caixa de entrada para confirmar o e-mail.',
         }
       } catch {
-        return { success: false, error: 'Erro ao conectar com o serviço de cadastro.' }
+        return { success: false, error: 'Erro de conexão ao realizar cadastro.' }
       }
     } else {
-      // Simulação no Modo Demo Local
+      // Modo Demo
       const storedUsersRaw = localStorage.getItem(LOCAL_STORAGE_USERS_KEY)
       const users: Array<AuthUser & { passwordHash: string }> = storedUsersRaw ? JSON.parse(storedUsersRaw) : []
 
       if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-        return { success: false, error: 'Já existe uma conta cadastrada com este e-mail.' }
+        return { success: false, error: 'Não foi possível concluir o cadastro com este e-mail. Se já possui conta, faça login.' }
       }
 
       const newUser: AuthUser = {
@@ -192,6 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         fullName,
         plan: 'free',
+        emailConfirmed: true,
       }
       users.push({ ...newUser, passwordHash: password })
       localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users))
@@ -199,12 +213,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(newUser)
       return {
         success: true,
-        message: 'Conta criada com sucesso! Você já está autenticado.',
+        message: 'Conta criada com sucesso no modo demonstração!',
       }
     }
   }, [])
 
-  // 4. Ação de Recuperação de Senha (Reset Password)
+  // 4. Solicitação de Recuperação de Senha (Forgot Password)
   const resetPassword = useCallback(async (data: ResetPasswordFormData): Promise<{ success: boolean; error?: string; message?: string }> => {
     const { email } = data
 
@@ -214,93 +228,120 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           redirectTo: `${window.location.origin}/reset-password`,
         })
         if (error) {
-          return { success: false, error: translateSupabaseError(error.message) }
+          return { success: false, error: 'Não foi possível enviar o e-mail de recuperação. Tente novamente.' }
         }
         return {
           success: true,
-          message: 'Se o e-mail estiver cadastrado, enviamos as instruções para redefinição de senha.',
+          message: 'Se o e-mail estiver cadastrado, você receberá um link seguro de recuperação em instantes.',
         }
       } catch {
-        return { success: false, error: 'Falha ao solicitar redefinição de senha.' }
+        return { success: false, error: 'Falha ao solicitar recuperação de senha.' }
       }
     } else {
-      // Simulação no Modo Demo
-      await new Promise((r) => setTimeout(r, 400))
       return {
         success: true,
-        message: 'Instruções de recuperação simuladas com sucesso para ' + email,
+        message: 'Link de recuperação simulado gerado com sucesso (modo demo).',
       }
     }
   }, [])
 
-  // 5. Ação de Logout (Sign Out)
-  const signOut = useCallback(async (): Promise<void> => {
+  // 5. Atualização de Nova Senha (/reset-password)
+  const updatePassword = useCallback(async (newPassword: string): Promise<{ success: boolean; error?: string }> => {
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.auth.signOut()
-      } catch (err) {
-        console.error('[Auth] Erro ao encerrar sessão no Supabase:', err)
+        const { error } = await supabase.auth.updateUser({ password: newPassword })
+        if (error) {
+          return { success: false, error: 'Token expirado ou inválido. Solicite uma nova recuperação.' }
+        }
+        return { success: true }
+      } catch {
+        return { success: false, error: 'Erro ao redefinir senha.' }
       }
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY)
     }
+    return { success: true }
+  }, [])
+
+  // 6. Reenvio de E-mail de Confirmação
+  const resendConfirmationEmail = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email,
+        })
+        if (error) {
+          return { success: false, error: 'Aguarde alguns minutos antes de solicitar novo envio.' }
+        }
+        return { success: true }
+      } catch {
+        return { success: false, error: 'Erro ao reenviar e-mail de confirmação.' }
+      }
+    }
+    return { success: true }
+  }, [])
+
+  // 7. Logout Server-Side (com scope global para invalidar tokens no servidor)
+  const signOut = useCallback(async () => {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.signOut({ scope: 'global' })
+      } catch (err) {
+        console.error('[Auth] Erro ao deslogar no servidor:', err)
+      }
+    }
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY)
     setUser(null)
   }, [])
 
-  // 6. Atualização de Plano (Upgrade / Downgrade via Hotmart Webhook ou Simulação)
-  const updateUserPlan = useCallback(async (newPlan: 'free' | 'pro' | 'agency'): Promise<void> => {
-    if (!user) return
-
-    const updatedUser: AuthUser = {
-      ...user,
-      plan: newPlan,
-    }
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase
-          .from('profiles')
-          .update({ plan: newPlan, updated_at: new Date().toISOString() })
-          .eq('id', user.id)
-      } catch (err) {
-        console.error('[Auth] Erro ao atualizar plano no Supabase:', err)
-      }
-    } else {
-      // Atualiza no localStorage
-      localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(updatedUser))
-
-      const storedUsersRaw = localStorage.getItem(LOCAL_STORAGE_USERS_KEY)
-      if (storedUsersRaw) {
-        const users = JSON.parse(storedUsersRaw) as Array<AuthUser & { passwordHash: string }>
-        const idx = users.findIndex((u) => u.id === user.id)
-        if (idx !== -1) {
-          users[idx].plan = newPlan
-          localStorage.setItem(LOCAL_STORAGE_USERS_KEY, JSON.stringify(users))
-        }
+  // 8. Atualiza Plano do Usuário (Feature 2)
+  const updateUserPlan = useCallback(async (newPlan: 'free' | 'pro' | 'agency') => {
+    setUser((prev) => (prev ? { ...prev, plan: newPlan } : null))
+    if (!isSupabaseConfigured) {
+      const stored = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored) as AuthUser
+        parsed.plan = newPlan
+        localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, JSON.stringify(parsed))
       }
     }
+  }, [])
 
-    setUser(updatedUser)
-  }, [user])
+  const isDemo = !isSupabaseConfigured
+  const needsEmailVerification = Boolean(user && !user.emailConfirmed && isSupabaseConfigured)
 
   const value = useMemo(
     () => ({
       user,
       loading,
-      isDemoMode: !isSupabaseConfigured,
+      isDemoMode: isDemo,
+      needsEmailVerification,
       signIn,
       signUp,
       resetPassword,
+      updatePassword,
+      resendConfirmationEmail,
       signOut,
       updateUserPlan,
     }),
-    [user, loading, signIn, signUp, resetPassword, signOut, updateUserPlan]
+    [
+      user,
+      loading,
+      isDemo,
+      needsEmailVerification,
+      signIn,
+      signUp,
+      resetPassword,
+      updatePassword,
+      resendConfirmationEmail,
+      signOut,
+      updateUserPlan,
+    ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (!context) {
     throw new Error('useAuth deve ser utilizado dentro de um <AuthProvider>')

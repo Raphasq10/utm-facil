@@ -34,7 +34,7 @@ import {
 import type { Project, UtmLink } from '@/types'
 
 export function App() {
-  const { user, loading: authLoading, isDemoMode } = useAuth()
+  const { user, loading: authLoading, isDemoMode, needsEmailVerification } = useAuth()
 
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveId] = useState<string>('')
@@ -283,6 +283,16 @@ export function App() {
           initialMode={authInitialTab}
           onBackToLanding={() => setPublicView('landing')}
         />
+      </>
+    )
+  }
+
+  // 3. Bloqueio de Segurança: Exige confirmação de e-mail para acesso ao painel
+  if (user && needsEmailVerification) {
+    return (
+      <>
+        <Toaster position="top-right" richColors closeButton />
+        <AuthView onBackToLanding={() => setPublicView('landing')} />
       </>
     )
   }

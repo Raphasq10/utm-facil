@@ -1,20 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   loginSchema,
   signupSchema,
   resetPasswordSchema,
+  updatePasswordSchema,
   calculatePasswordStrength,
   type LoginFormData,
   type SignupFormData,
   type ResetPasswordFormData,
+  type UpdatePasswordFormData,
 } from '@/lib/validations/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import {
   Lock,
@@ -22,16 +23,22 @@ import {
   User,
   ArrowRight,
   ArrowLeft,
-  CheckCircle2,
   KeyRound,
   Loader2,
   Sparkles,
   ShieldCheck,
   Zap,
   FolderKanban,
+  RefreshCw,
 } from 'lucide-react'
 
-type AuthMode = 'login' | 'signup' | 'reset'
+export type AuthMode =
+  | 'login'
+  | 'signup'
+  | 'forgot_password'
+  | 'reset_password_new'
+  | 'verify_email'
+  | 'callback'
 
 interface AuthViewProps {
   initialMode?: 'login' | 'signup'
@@ -43,8 +50,21 @@ export const AuthView: React.FC<AuthViewProps> = ({
   onBackToLanding,
 }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode)
-  const { signIn, signUp, resetPassword, isDemoMode } = useAuth()
+  const [pendingEmail, setPendingEmail] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+
+  const {
+    signIn,
+    signUp,
+    resetPassword,
+    updatePassword,
+    resendConfirmationEmail,
+    needsEmailVerification,
+    user,
+    signOut,
+    isDemoMode,
+  } = useAuth()
 
   // 1. Form de Login
   const loginForm = useForm<LoginFormData>({
@@ -52,21 +72,50 @@ export const AuthView: React.FC<AuthViewProps> = ({
     defaultValues: { email: '', password: '' },
   })
 
-  // 2. Form de Cadastro
+  // 2. Form de Cadastro (com Honeypot)
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', website: '' },
   })
 
-  // 3. Form de Recuperação de Senha
-  const resetForm = useForm<ResetPasswordFormData>({
+  // 3. Form de Solicitação de Recuperação (Forgot Password)
+  const forgotForm = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { email: '' },
   })
 
-  // Observador de senha para calcular força em tempo real
+  // 4. Form de Definição de Nova Senha (Reset Password)
+  const updateForm = useForm<UpdatePasswordFormData>({
+    resolver: zodResolver(updatePasswordSchema),
+    defaultValues: { password: '', confirmPassword: '' },
+  })
+
+  // Observa senhas para calcular força visualmente
   const watchedSignupPassword = signupForm.watch('password')
-  const passwordStrength = calculatePasswordStrength(watchedSignupPassword || '')
+  const watchedUpdatePassword = updateForm.watch('password')
+  const passwordStrength = calculatePasswordStrength(
+    mode === 'reset_password_new' ? watchedUpdatePassword || '' : watchedSignupPassword || ''
+  )
+
+  // Detecta se a URL contém token de recuperação de senha ou confirmação de email
+  useEffect(() => {
+    const hash = window.location.hash
+    const search = window.location.search
+
+    if (hash.includes('type=recovery') || search.includes('type=recovery')) {
+      setMode('reset_password_new')
+      toast.info('Link de recuperação identificado! Digite sua nova senha.')
+    } else if (hash.includes('access_token') || search.includes('code=')) {
+      setMode('callback')
+      setTimeout(() => {
+        setMode('login')
+        toast.success('Autenticação processada! Você pode fazer login.')
+      }, 1500)
+    } else if (needsEmailVerification && user) {
+      setPendingEmail(user.email)
+      setMode('verify_email')
+    }
+  }, [needsEmailVerification, user])
 
   // Handlers de submissão com proteção contra Race Conditions
   const handleLoginSubmit = async (data: LoginFormData) => {
@@ -75,7 +124,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
     try {
       const res = await signIn(data)
       if (!res.success) {
-        toast.error(res.error || 'Falha ao autenticar.')
+        // Regra de segurança: Sempre mensagem genérica
+        toast.error(res.error || 'Email ou senha inválidos')
       } else {
         toast.success('Bem-vindo(a) de volta!')
       }
@@ -90,24 +140,42 @@ export const AuthView: React.FC<AuthViewProps> = ({
     try {
       const res = await signUp(data)
       if (!res.success) {
-        toast.error(res.error || 'Falha ao criar conta.')
+        toast.error(res.error || 'Falha ao processar cadastro.')
       } else {
-        toast.success(res.message || 'Conta criada com sucesso!')
+        setPendingEmail(data.email)
+        setMode('verify_email')
+        toast.success(res.message || 'Conta criada! Confirme seu e-mail para ativar.')
       }
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleResetSubmit = async (data: ResetPasswordFormData) => {
+  const handleForgotSubmit = async (data: ResetPasswordFormData) => {
     if (isSubmitting) return
     setIsSubmitting(true)
     try {
       const res = await resetPassword(data)
       if (!res.success) {
-        toast.error(res.error || 'Falha na recuperação de senha.')
+        toast.error(res.error || 'Erro ao enviar e-mail de recuperação.')
       } else {
-        toast.success(res.message || 'Instruções enviadas com sucesso.')
+        toast.success(res.message || 'Instruções enviadas para seu e-mail.')
+        setPendingEmail(data.email)
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleUpdatePasswordSubmit = async (data: UpdatePasswordFormData) => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    try {
+      const res = await updatePassword(data.password)
+      if (!res.success) {
+        toast.error(res.error || 'Não foi possível atualizar a senha.')
+      } else {
+        toast.success('Senha atualizada com sucesso! Faça login com a nova senha.')
         setMode('login')
       }
     } finally {
@@ -115,15 +183,30 @@ export const AuthView: React.FC<AuthViewProps> = ({
     }
   }
 
+  const handleResendConfirmation = async () => {
+    if (!pendingEmail || isResending) return
+    setIsResending(true)
+    try {
+      const res = await resendConfirmationEmail(pendingEmail)
+      if (res.success) {
+        toast.success('Novo e-mail de confirmação enviado! Verifique sua caixa de entrada.')
+      } else {
+        toast.error(res.error || 'Aguarde alguns minutos antes de reenviar.')
+      }
+    } finally {
+      setIsResending(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-zinc-100 to-emerald-50/40 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/20 flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white relative">
+    <div className="min-h-screen bg-zinc-950 flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white">
       {/* Botão de Retorno à Landing Page */}
       {onBackToLanding && (
         <div className="w-full max-w-4xl mb-3 flex items-center justify-between">
           <button
             type="button"
             onClick={onBackToLanding}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             Voltar para a Página Inicial
@@ -133,23 +216,20 @@ export const AuthView: React.FC<AuthViewProps> = ({
 
       {/* Banner de Demonstração quando Supabase ainda não estiver conectado no .env */}
       {isDemoMode && (
-        <div className="w-full max-w-4xl mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
+        <div className="w-full max-w-4xl mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs text-amber-300">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              <strong>Modo Demonstração Local Ativo:</strong> Você pode se cadastrar e logar imediatamente. Para sincronizar com a nuvem, preencha as chaves no arquivo <code className="bg-amber-100 dark:bg-amber-900/40 px-1 py-0.5 rounded">.env</code>.
+              <strong>Modo Demonstração Local:</strong> Cadastre-se ou entre para testar todas as funcionalidades.
             </span>
           </div>
         </div>
       )}
 
-      <div className="w-full max-w-4xl grid md:grid-cols-2 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200/80 dark:border-zinc-800 overflow-hidden">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-800 overflow-hidden">
         {/* Coluna da Esquerda: Apresentação da Marca & Proposta de Valor */}
-        <div className="hidden md:flex flex-col justify-between p-8 bg-gradient-to-br from-emerald-600 via-teal-700 to-zinc-900 text-white relative overflow-hidden">
-          {/* Efeito decorativo de fundo */}
+        <div className="hidden md:flex flex-col justify-between p-8 bg-gradient-to-br from-emerald-600 via-teal-700 to-zinc-950 text-white relative overflow-hidden">
           <div className="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute -left-16 -bottom-16 w-56 h-56 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
-
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-100 text-xs font-medium mb-6">
               <Zap className="w-3.5 h-3.5 text-emerald-300" />
@@ -159,108 +239,278 @@ export const AuthView: React.FC<AuthViewProps> = ({
             <h1 className="text-3xl font-extrabold tracking-tight mb-3">
               Campanha<span className="text-emerald-300">UTM</span>
             </h1>
-            <p className="text-emerald-100 text-sm leading-relaxed mb-6">
-              Centralize, higienize e proteja os links de tráfego de toda a sua agência ou e-commerce sem depender de planilhas frágeis.
+            <p className="text-emerald-50 text-sm leading-relaxed mb-8">
+              Padronize o rastreamento das suas campanhas em múltiplos clientes com isolamento seguro, limites por plano e regras GA4 automáticas.
             </p>
 
-            <div className="space-y-4 text-sm text-emerald-50">
+            <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-emerald-300 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Higienização Automática:</strong> 100% de conformidade com o Google Analytics 4 (sem maiúsculas ou acentos).
-                </span>
+                <div className="p-2 rounded-lg bg-white/10 backdrop-blur-sm text-emerald-300">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Multi-Tenancy Estrito</h4>
+                  <p className="text-[11px] text-emerald-100/80">Dados protegidos por Row Level Security no PostgreSQL.</p>
+                </div>
               </div>
+
               <div className="flex items-start gap-3">
-                <FolderKanban className="w-5 h-5 text-emerald-300 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Organização por Projetos:</strong> Separe campanhas por cliente ou linha de produto com isolamento estrito.
-                </span>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-300 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Exportação Portátil:</strong> Gere guias HTML autônomos e planilhas CSV para criadores em 1 clique.
-                </span>
+                <div className="p-2 rounded-lg bg-white/10 backdrop-blur-sm text-emerald-300">
+                  <FolderKanban className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white">Gestão por Projetos</h4>
+                  <p className="text-[11px] text-emerald-100/80">Separação limpa entre clientes, contas e campanhas.</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="relative z-10 pt-8 border-t border-white/10 flex items-center justify-between text-xs text-emerald-200">
-            <span>campanhautm.com.br</span>
-            <span>Versão 2.0 (SaaS)</span>
+          <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-emerald-200/80">
+            <span>© 2026 CampanhaUTM</span>
+            <span>Versão SaaS 2.0</span>
           </div>
         </div>
 
-        {/* Coluna da Direita: Formulários com Validação */}
-        <div className="p-6 sm:p-8 flex flex-col justify-center">
-          {/* 1. Modo LOGIN */}
-          {mode === 'login' && (
-            <Card className="border-0 shadow-none bg-transparent p-0">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  Acessar Plataforma
-                </CardTitle>
-                <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Entre com suas credenciais para gerenciar seus links e projetos.
-                </CardDescription>
-              </CardHeader>
+        {/* Coluna da Direita: Formulários Dinâmicos */}
+        <div className="p-6 sm:p-8 flex flex-col justify-center bg-zinc-900 text-zinc-100">
+          {/* TELA: VERIFY EMAIL */}
+          {mode === 'verify_email' && (
+            <div>
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Mail className="w-7 h-7" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Verifique seu E-mail</h2>
+                <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                  Enviamos um link de confirmação para{' '}
+                  <strong className="text-white">{pendingEmail || 'seu e-mail'}</strong>.
+                  Por segurança, confirme seu endereço para desbloquear o painel.
+                </p>
+              </div>
 
-              <CardContent className="px-0 space-y-4">
-                <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4" noValidate>
+              <div className="space-y-4">
+                <Button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={isResending}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer"
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Reenviando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Reenviar E-mail de Confirmação
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (user) signOut()
+                    setMode('login')
+                  }}
+                  className="w-full border-zinc-800 text-zinc-300 hover:bg-zinc-800 cursor-pointer text-xs"
+                >
+                  Voltar para o Login
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* TELA: CALLBACK PROCESSING */}
+          {mode === 'callback' && (
+            <div className="text-center py-10 space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mx-auto" />
+              <h3 className="text-lg font-bold text-white">Processando confirmação segura...</h3>
+              <p className="text-xs text-zinc-400">Validando token criptográfico com o Supabase.</p>
+            </div>
+          )}
+
+          {/* TELA: DEFINIR NOVA SENHA (/reset-password) */}
+          {mode === 'reset_password_new' && (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-white mb-1">Criar Nova Senha</h2>
+                <p className="text-xs text-zinc-400">Defina uma nova senha segura com no mínimo 10 caracteres.</p>
+              </div>
+
+              <form onSubmit={updateForm.handleSubmit(handleUpdatePasswordSubmit)} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-pass" className="text-xs font-semibold text-zinc-300">Nova Senha</Label>
+                  <Input
+                    id="new-pass"
+                    type="password"
+                    maxLength={72}
+                    placeholder="Mínimo 10 caracteres com maiúscula e número"
+                    {...updateForm.register('password')}
+                    className="bg-zinc-950 border-zinc-800 text-white"
+                  />
+                  {updateForm.formState.errors.password && (
+                    <p className="text-[11px] text-rose-400">{updateForm.formState.errors.password.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirm-new-pass" className="text-xs font-semibold text-zinc-300">Confirmar Senha</Label>
+                  <Input
+                    id="confirm-new-pass"
+                    type="password"
+                    maxLength={72}
+                    placeholder="Repita a nova senha"
+                    {...updateForm.register('confirmPassword')}
+                    className="bg-zinc-950 border-zinc-800 text-white"
+                  />
+                  {updateForm.formState.errors.confirmPassword && (
+                    <p className="text-[11px] text-rose-400">{updateForm.formState.errors.confirmPassword.message}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Salvar Nova Senha'}
+                </Button>
+              </form>
+            </div>
+          )}
+
+          {/* TELA: FORGOT PASSWORD */}
+          {mode === 'forgot_password' && (
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-white mb-1">Recuperar Senha</h2>
+                <p className="text-xs text-zinc-400">
+                  Informe seu e-mail cadastrado para receber o link seguro de redefinição.
+                </p>
+              </div>
+
+              <form onSubmit={forgotForm.handleSubmit(handleForgotSubmit)} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="forgot-email" className="text-xs font-semibold text-zinc-300">E-mail</Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    maxLength={255}
+                    placeholder="seu.email@empresa.com"
+                    {...forgotForm.register('email')}
+                    className="bg-zinc-950 border-zinc-800 text-white"
+                  />
+                  {forgotForm.formState.errors.email && (
+                    <p className="text-[11px] text-rose-400">{forgotForm.formState.errors.email.message}</p>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer"
+                >
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar Link de Recuperação'}
+                </Button>
+
+                <div className="text-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="text-xs text-zinc-400 hover:text-emerald-400 cursor-pointer"
+                  >
+                    Lembrou da senha? Faça login
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* TELA: LOGIN & SIGNUP (COM ABAS) */}
+          {(mode === 'login' || mode === 'signup') && (
+            <div>
+              {/* Abas Alternadoras */}
+              <div className="grid grid-cols-2 bg-zinc-950 p-1 rounded-xl mb-6 border border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    mode === 'login'
+                      ? 'bg-zinc-800 text-white shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Entrar na Conta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('signup')}
+                  className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                    mode === 'signup'
+                      ? 'bg-zinc-800 text-white shadow-sm'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Criar Conta
+                </button>
+              </div>
+
+              {/* FORMULÁRIO DE LOGIN */}
+              {mode === 'login' && (
+                <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="login-email">E-mail Corporativo</Label>
+                    <Label htmlFor="login-email" className="text-xs font-semibold text-zinc-300">E-mail</Label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
+                      <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <Input
                         id="login-email"
                         type="email"
-                        placeholder="seu.email@agencia.com.br"
-                        maxLength={120}
-                        autoComplete="email"
-                        className="pl-9"
-                        disabled={isSubmitting}
+                        maxLength={255}
+                        placeholder="gestor@agencia.com.br"
                         {...loginForm.register('email')}
+                        className="pl-9 bg-zinc-950 border-zinc-800 text-white focus-visible:ring-emerald-500"
                       />
                     </div>
                     {loginForm.formState.errors.email && (
-                      <p className="text-xs text-rose-500 font-medium">{loginForm.formState.errors.email.message}</p>
+                      <p className="text-[11px] text-rose-400">{loginForm.formState.errors.email.message}</p>
                     )}
                   </div>
 
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Senha</Label>
+                      <Label htmlFor="login-pass" className="text-xs font-semibold text-zinc-300">Senha</Label>
                       <button
                         type="button"
-                        onClick={() => setMode('reset')}
-                        className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                        tabIndex={0}
+                        onClick={() => setMode('forgot_password')}
+                        className="text-[11px] text-emerald-400 hover:text-emerald-300 cursor-pointer"
                       >
                         Esqueceu a senha?
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
+                      <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <Input
-                        id="login-password"
+                        id="login-pass"
                         type="password"
-                        placeholder="••••••••"
                         maxLength={72}
-                        autoComplete="current-password"
-                        className="pl-9"
-                        disabled={isSubmitting}
+                        placeholder="••••••••••"
                         {...loginForm.register('password')}
+                        className="pl-9 bg-zinc-950 border-zinc-800 text-white focus-visible:ring-emerald-500"
                       />
                     </div>
                     {loginForm.formState.errors.password && (
-                      <p className="text-xs text-rose-500 font-medium">{loginForm.formState.errors.password.message}</p>
+                      <p className="text-[11px] text-rose-400">{loginForm.formState.errors.password.message}</p>
                     )}
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 mt-2 transition-all cursor-pointer"
                     disabled={isSubmitting}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer shadow-lg shadow-emerald-950/40"
                   >
                     {isSubmitting ? (
                       <>
@@ -269,238 +519,136 @@ export const AuthView: React.FC<AuthViewProps> = ({
                       </>
                     ) : (
                       <>
-                        Entrar no Painel
+                        Acessar Minha Conta
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
                   </Button>
                 </form>
-              </CardContent>
+              )}
 
-              <CardFooter className="px-0 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-center text-sm text-zinc-500 dark:text-zinc-400">
-                Ainda não tem conta?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('signup')}
-                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
-                >
-                  Cadastre-se grátis
-                </button>
-              </CardFooter>
-            </Card>
-          )}
+              {/* FORMULÁRIO DE CADASTRO (COM HONEYPOT) */}
+              {mode === 'signup' && (
+                <form onSubmit={signupForm.handleSubmit(handleSignupSubmit)} className="space-y-3.5">
+                  {/* Honeypot Invisível para Bots */}
+                  <div className="opacity-0 absolute -z-50 pointer-events-none select-none h-0 w-0 overflow-hidden" aria-hidden="true" tabIndex={-1}>
+                    <Label htmlFor="hp-website">Website da Empresa</Label>
+                    <Input
+                      id="hp-website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      {...signupForm.register('website')}
+                    />
+                  </div>
 
-          {/* 2. Modo CADASTRO (Sign Up) */}
-          {mode === 'signup' && (
-            <Card className="border-0 shadow-none bg-transparent p-0">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  Criar Conta Gratuita
-                </CardTitle>
-                <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Comece no Plano Free com 1 projeto e até 25 links hoje mesmo.
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="px-0 space-y-4">
-                <form onSubmit={signupForm.handleSubmit(handleSignupSubmit)} className="space-y-3" noValidate>
-                  <div className="space-y-1">
-                    <Label htmlFor="signup-name">Nome Completo</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-name" className="text-xs font-semibold text-zinc-300">Nome Completo</Label>
                     <div className="relative">
-                      <User className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
+                      <User className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <Input
                         id="signup-name"
                         type="text"
-                        placeholder="Ex: Rodrigo Martins"
-                        maxLength={80}
-                        autoComplete="name"
-                        className="pl-9"
-                        disabled={isSubmitting}
+                        maxLength={100}
+                        placeholder="Ex: Carlos Silva"
                         {...signupForm.register('fullName')}
+                        className="pl-9 bg-zinc-950 border-zinc-800 text-white focus-visible:ring-emerald-500"
                       />
                     </div>
                     {signupForm.formState.errors.fullName && (
-                      <p className="text-xs text-rose-500 font-medium">{signupForm.formState.errors.fullName.message}</p>
+                      <p className="text-[11px] text-rose-400">{signupForm.formState.errors.fullName.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="signup-email">E-mail Profissional</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-email" className="text-xs font-semibold text-zinc-300">E-mail Profissional</Label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
+                      <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <Input
                         id="signup-email"
                         type="email"
-                        placeholder="rodrigo@agencia.com.br"
-                        maxLength={120}
-                        autoComplete="email"
-                        className="pl-9"
-                        disabled={isSubmitting}
+                        maxLength={255}
+                        placeholder="carlos@agencia.com.br"
                         {...signupForm.register('email')}
+                        className="pl-9 bg-zinc-950 border-zinc-800 text-white focus-visible:ring-emerald-500"
                       />
                     </div>
                     {signupForm.formState.errors.email && (
-                      <p className="text-xs text-rose-500 font-medium">{signupForm.formState.errors.email.message}</p>
+                      <p className="text-[11px] text-rose-400">{signupForm.formState.errors.email.message}</p>
                     )}
                   </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="signup-password">Senha (mínimo 8 caracteres, maiúscula e número)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-pass" className="text-xs font-semibold text-zinc-300">Senha (Mín. 10 Caracteres)</Label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
+                      <Lock className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <Input
-                        id="signup-password"
+                        id="signup-pass"
                         type="password"
-                        placeholder="••••••••"
                         maxLength={72}
-                        autoComplete="new-password"
-                        className="pl-9"
-                        disabled={isSubmitting}
+                        placeholder="Letras maiúsculas, minúsculas e números"
                         {...signupForm.register('password')}
+                        className="pl-9 bg-zinc-950 border-zinc-800 text-white focus-visible:ring-emerald-500"
                       />
                     </div>
                     {signupForm.formState.errors.password && (
-                      <p className="text-xs text-rose-500 font-medium">{signupForm.formState.errors.password.message}</p>
+                      <p className="text-[11px] text-rose-400">{signupForm.formState.errors.password.message}</p>
                     )}
 
-                    {/* Medidor visual de força da senha */}
+                    {/* Medidor de Força */}
                     {watchedSignupPassword && (
-                      <div className="pt-1.5 space-y-1">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Força da senha:</span>
-                          <span className="font-medium text-zinc-700 dark:text-zinc-300">{passwordStrength.label}</span>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                            style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                          />
                         </div>
-                        <div className="h-1.5 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden flex gap-1">
-                          {[1, 2, 3, 4].map((step) => (
-                            <div
-                              key={step}
-                              className={`h-full flex-1 transition-all duration-300 ${
-                                step <= passwordStrength.score ? passwordStrength.color : 'bg-transparent'
-                              }`}
-                            />
-                          ))}
-                        </div>
+                        <span className="text-[10px] text-zinc-400 font-medium">
+                          Força: {passwordStrength.label}
+                        </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="signup-confirm">Confirmação de Senha</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-confirm-pass" className="text-xs font-semibold text-zinc-300">Confirmar Senha</Label>
                     <div className="relative">
-                      <KeyRound className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
+                      <KeyRound className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <Input
-                        id="signup-confirm"
+                        id="signup-confirm-pass"
                         type="password"
-                        placeholder="••••••••"
                         maxLength={72}
-                        autoComplete="new-password"
-                        className="pl-9"
-                        disabled={isSubmitting}
+                        placeholder="Repita a senha exata"
                         {...signupForm.register('confirmPassword')}
+                        className="pl-9 bg-zinc-950 border-zinc-800 text-white focus-visible:ring-emerald-500"
                       />
                     </div>
                     {signupForm.formState.errors.confirmPassword && (
-                      <p className="text-xs text-rose-500 font-medium">
-                        {signupForm.formState.errors.confirmPassword.message}
-                      </p>
+                      <p className="text-[11px] text-rose-400">{signupForm.formState.errors.confirmPassword.message}</p>
                     )}
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 mt-2 transition-all cursor-pointer"
                     disabled={isSubmitting}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer shadow-lg shadow-emerald-950/40"
                   >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Criando conta...
+                        Criando Conta Segura...
                       </>
                     ) : (
                       <>
-                        Concluir Cadastro
+                        Criar Minha Conta Grátis
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
                   </Button>
                 </form>
-              </CardContent>
-
-              <CardFooter className="px-0 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-center text-sm text-zinc-500 dark:text-zinc-400">
-                Já possui uma conta?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('login')}
-                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
-                >
-                  Entrar
-                </button>
-              </CardFooter>
-            </Card>
-          )}
-
-          {/* 3. Modo RECUPERAÇÃO DE SENHA (Reset) */}
-          {mode === 'reset' && (
-            <Card className="border-0 shadow-none bg-transparent p-0">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  Recuperar Senha
-                </CardTitle>
-                <CardDescription className="text-zinc-500 dark:text-zinc-400">
-                  Digite seu e-mail cadastrado para enviarmos um link seguro de redefinição.
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="px-0 space-y-4">
-                <form onSubmit={resetForm.handleSubmit(handleResetSubmit)} className="space-y-4" noValidate>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="reset-email">E-mail Cadastrado</Label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-zinc-400 absolute left-3 top-3 pointer-events-none" />
-                      <Input
-                        id="reset-email"
-                        type="email"
-                        placeholder="seu.email@agencia.com.br"
-                        maxLength={120}
-                        autoComplete="email"
-                        className="pl-9"
-                        disabled={isSubmitting}
-                        {...resetForm.register('email')}
-                      />
-                    </div>
-                    {resetForm.formState.errors.email && (
-                      <p className="text-xs text-rose-500 font-medium">{resetForm.formState.errors.email.message}</p>
-                    )}
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 mt-2 transition-all cursor-pointer"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Enviando instruções...
-                      </>
-                    ) : (
-                      'Enviar Link de Recuperação'
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-
-              <CardFooter className="px-0 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-center text-sm text-zinc-500 dark:text-zinc-400">
-                Lembrou da senha?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('login')}
-                  className="ml-1 text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
-                >
-                  Voltar para o Login
-                </button>
-              </CardFooter>
-            </Card>
+              )}
+            </div>
           )}
         </div>
       </div>
