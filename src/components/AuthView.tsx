@@ -237,9 +237,13 @@ export const AuthView: React.FC<AuthViewProps> = ({
               <span>SaaS de Taxonomia GA4 & Performance</span>
             </div>
 
-            <h1 className="text-3xl font-extrabold tracking-tight mb-3">
-              Campanha<span className="text-emerald-300">UTM</span>
-            </h1>
+            <div className="mb-4">
+              <img
+                src="/logo-clara.png"
+                alt="CampanhaUTM"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
             <p className="text-emerald-50 text-sm leading-relaxed mb-8">
               Padronize o rastreamento das suas campanhas em múltiplos clientes com isolamento seguro, limites por plano e regras GA4 automáticas.
             </p>

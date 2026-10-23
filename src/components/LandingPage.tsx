@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import {
-  Link2,
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
@@ -48,22 +47,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 1. NAVBAR / HEADER PÚBLICO */}
       <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
-          {/* Logo & Marca */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-emerald-500/20 shrink-0">
-              <Link2 className="w-5 h-5 text-slate-950" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white">
-                  Campanha<span className="text-emerald-400">UTM</span>
-                </span>
-                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  campanhautm.com.br
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Logo Oficial CampanhaUTM */}
+          <a href="#" className="flex items-center">
+            <img
+              src="/logo-clara.png"
+              alt="CampanhaUTM"
+              className="h-8 sm:h-9 w-auto object-contain"
+            />
+          </a>
 
           {/* Links de Navegação Desktop */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
@@ -718,15 +709,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 11. FOOTER INSTITUCIONAL */}
       <footer className="border-t border-slate-900 bg-slate-950 py-10 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-              <Link2 className="w-4 h-4" />
-            </div>
-            <span className="font-bold text-white text-sm">
-              Campanha<span className="text-emerald-400">UTM</span>
-            </span>
-            <span className="text-slate-600">|</span>
-            <span>campanhautm.com.br</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo-clara.png"
+              alt="CampanhaUTM"
+              className="h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+            />
           </div>
 
           <p className="text-center sm:text-right text-[11px] text-slate-500">

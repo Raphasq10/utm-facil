@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import {
-  Link2,
   FolderKanban,
   Lock,
   Unlock,
@@ -58,24 +57,13 @@ export function Header({
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18 py-3">
-          {/* Logo & Marca Comercial CampanhaUTM */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold shadow-sm shrink-0">
-              <Link2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
-                  Campanha<span className="text-emerald-400">UTM</span>
-                </span>
-                <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  campanhautm.com.br
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 hidden lg:block">
-                Plataforma de Taxonomia GA4 & Banco Central de Links
-              </p>
-            </div>
+          {/* Logo Oficial CampanhaUTM */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo-clara.png"
+              alt="CampanhaUTM"
+              className="h-7 sm:h-8 w-auto object-contain"
+            />
           </div>
 
           {/* Seletor de Projetos, Ações e Perfil do Usuário */}
