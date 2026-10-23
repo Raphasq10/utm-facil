@@ -152,7 +152,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Título Principal de Alto Impacto */}
           <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight sm:leading-tight mb-6">
-            Chega de planilhas quebradas e links perdidos no WhatsApp.
+            Chega de planilhas quebradas e links perdidos no WhatsApp
           </h1>
 
           {/* Subtítulo explicativo */}
