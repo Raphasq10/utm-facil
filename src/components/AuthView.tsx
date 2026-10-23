@@ -30,6 +30,7 @@ import {
   Zap,
   FolderKanban,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react'
 
 export type AuthMode =
@@ -277,24 +278,42 @@ export const AuthView: React.FC<AuthViewProps> = ({
           {/* TELA: VERIFY EMAIL */}
           {mode === 'verify_email' && (
             <div>
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Mail className="w-7 h-7" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Verifique seu E-mail</h2>
-                <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
-                  Enviamos um link de confirmação para{' '}
-                  <strong className="text-white">{pendingEmail || 'seu e-mail'}</strong>.
-                  Por segurança, confirme seu endereço para desbloquear o painel.
+                <p className="text-xs text-zinc-300 max-w-sm mx-auto leading-relaxed">
+                  Enviamos o link de ativação para{' '}
+                  <strong className="text-emerald-400">{pendingEmail || 'seu e-mail'}</strong>.
                 </p>
               </div>
 
-              <div className="space-y-4">
+              {/* Box de Orientação para o Usuário */}
+              <div className="mb-5 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Como localizar o e-mail:</span>
+                </div>
+                <ul className="text-[11px] text-zinc-300 space-y-1.5 list-disc list-inside">
+                  <li>
+                    <strong>Remetente:</strong> O e-mail é enviado em nome do nosso provedor seguro (<strong>Supabase</strong>).
+                  </li>
+                  <li>
+                    <strong>Assunto:</strong> <code className="bg-zinc-800 px-1 py-0.5 rounded text-amber-200">Confirm your email address</code>
+                  </li>
+                  <li>
+                    <strong>Não viu na entrada?</strong> Verifique a pasta de <em>Spam</em> ou <em>Lixo Eletrônico</em>.
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
                 <Button
                   type="button"
                   onClick={handleResendConfirmation}
                   disabled={isResending}
-                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer"
+                  className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer h-10 text-xs"
                 >
                   {isResending ? (
                     <>
@@ -304,7 +323,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   ) : (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2" />
-                      Reenviar E-mail de Confirmação
+                      Reenviar E-mail de Ativação
                     </>
                   )}
                 </Button>
@@ -316,7 +335,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                     if (user) signOut()
                     setMode('login')
                   }}
-                  className="w-full border-zinc-800 text-zinc-300 hover:bg-zinc-800 cursor-pointer text-xs"
+                  className="w-full border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 cursor-pointer text-xs h-9"
                 >
                   Voltar para o Login
                 </Button>
