@@ -511,8 +511,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Button
                 type="button"
                 onClick={onSignup}
-                variant="outline"
-                className="w-full border-slate-700 hover:bg-slate-800 text-white font-semibold cursor-pointer"
+                className="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-semibold cursor-pointer shadow-sm py-2.5 transition-colors"
               >
                 Começar Grátis
               </Button>
@@ -520,7 +519,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* PLANO PRO (DESTAQUE) */}
             <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-emerald-950/30 border-2 border-emerald-500 relative flex flex-col justify-between shadow-2xl shadow-emerald-500/10">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
                 Mais Escolhido por Agências
               </div>
               <div>
@@ -554,48 +553,58 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <Button
                 type="button"
                 onClick={() => onSelectPlan('pro')}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 shadow-lg shadow-emerald-600/30 cursor-pointer"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 shadow-lg shadow-emerald-600/30 cursor-pointer transition-all"
               >
                 Assinar Plano Pro na Hotmart
                 <ExternalLink className="w-4 h-4 ml-1.5" />
               </Button>
             </div>
 
-            {/* PLANO AGENCY */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-white mb-1">Plano Agency</h3>
-                <p className="text-xs text-slate-400 mb-6">Para agências de escala e grandes operações.</p>
-                <div className="mb-6 pb-6 border-b border-slate-800">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold text-white">R$ 127</span>
-                    <span className="text-xs text-slate-400">/mês</span>
-                  </div>
-                  <span className="text-xs text-slate-400 block mt-1">Assinatura mensal recorrente</span>
+            {/* PLANO AGENCY (EM BREVE) */}
+            <div className="relative p-6 sm:p-8 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col justify-between overflow-hidden opacity-50 select-none">
+              {/* Faixa transversal Em Breve */}
+              <div className="absolute top-0 right-0 w-32 h-32 overflow-hidden pointer-events-none z-20">
+                <div className="absolute top-6 -right-9 w-36 bg-amber-400 text-slate-950 font-black text-[10px] tracking-widest uppercase py-1 text-center rotate-45 shadow-md border-y border-amber-300">
+                  Em Breve
                 </div>
-                <ul className="space-y-3 text-xs text-slate-300 mb-8">
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-slate-400 mb-1">Plano Agency</h3>
+                <p className="text-xs text-slate-500 mb-6">Para agências de escala e grandes operações.</p>
+                <div className="mb-6 pb-6 border-b border-slate-800/60">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold text-white filter blur-[6px] select-none pointer-events-none">
+                      R$ 127
+                    </span>
+                    <span className="text-xs text-slate-400 filter blur-[4px] select-none">/mês</span>
+                  </div>
+                  <span className="text-xs text-amber-400 block mt-1 font-semibold">
+                    Lançamento em breve
+                  </span>
+                </div>
+                <ul className="space-y-3 text-xs text-slate-400 mb-8">
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Projetos e Clientes ilimitados
+                    <CheckCircle2 className="w-4 h-4 text-slate-600" /> Projetos e Clientes ilimitados
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Links UTM ilimitados
+                    <CheckCircle2 className="w-4 h-4 text-slate-600" /> Links UTM ilimitados
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Exportação HTML + CSV completa
+                    <CheckCircle2 className="w-4 h-4 text-slate-600" /> Exportação HTML + CSV completa
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Suporte prioritário via WhatsApp
+                    <CheckCircle2 className="w-4 h-4 text-slate-600" /> Suporte prioritário via WhatsApp
                   </li>
                 </ul>
               </div>
               <Button
                 type="button"
-                onClick={() => onSelectPlan('agency')}
-                variant="outline"
-                className="w-full border-slate-700 hover:bg-slate-800 text-white font-semibold cursor-pointer"
+                disabled
+                className="w-full bg-slate-800/80 text-slate-400 border border-slate-700/60 font-semibold cursor-not-allowed py-2.5 opacity-90"
               >
-                Assinar Plano Agency
-                <ExternalLink className="w-4 h-4 ml-1.5" />
+                <Lock className="w-3.5 h-3.5 mr-1.5 opacity-70" />
+                Em Breve
               </Button>
             </div>
           </div>

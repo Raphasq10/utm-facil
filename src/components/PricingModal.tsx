@@ -159,20 +159,32 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             const plan = PLAN_CONFIGS[planKey]
             const isCurrent = currentPlan === planKey
             const isHighlight = highlightPlan === planKey && !isCurrent
+            const isAgencySoon = planKey === 'agency'
 
             return (
               <div
                 key={planKey}
-                className={`relative rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 border ${
-                  isHighlight
+                className={`relative rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 border overflow-hidden ${
+                  isAgencySoon
+                    ? 'border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 opacity-60 select-none'
+                    : isHighlight
                     ? 'border-emerald-500 shadow-xl shadow-emerald-500/10 bg-gradient-to-b from-white to-emerald-50/20 dark:from-zinc-900 dark:to-emerald-950/20'
                     : isCurrent
                     ? 'border-emerald-600/40 bg-emerald-500/5 dark:border-emerald-500/30'
                     : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
                 }`}
               >
+                {/* Faixa transversal Em Breve para Plano Agency */}
+                {isAgencySoon && (
+                  <div className="absolute top-0 right-0 w-28 h-28 overflow-hidden pointer-events-none z-20">
+                    <div className="absolute top-5 -right-8 w-32 bg-amber-400 text-slate-950 font-black text-[10px] tracking-widest uppercase py-1 text-center rotate-45 shadow-md border-y border-amber-300">
+                      Em Breve
+                    </div>
+                  </div>
+                )}
+
                 {/* Badge de Destaque */}
-                {plan.isPopular && (
+                {plan.isPopular && !isAgencySoon && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                     <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm tracking-wide uppercase">
                       Mais Escolhido
@@ -197,15 +209,29 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   {/* Preço */}
                   <div className="mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
+                      <span
+                        className={`text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 ${
+                          isAgencySoon ? 'filter blur-[5px] select-none pointer-events-none' : ''
+                        }`}
+                      >
                         {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
                       </span>
                       {plan.price > 0 && (
-                        <span className="text-xs text-zinc-500 font-medium">/{plan.billingPeriod}</span>
+                        <span
+                          className={`text-xs text-zinc-500 font-medium ${
+                            isAgencySoon ? 'filter blur-[3px] select-none' : ''
+                          }`}
+                        >
+                          /{plan.billingPeriod}
+                        </span>
                       )}
                     </div>
                     <span className="text-[11px] text-zinc-400 block mt-0.5">
-                      {plan.price === 0 ? 'Sem cartão de crédito' : 'Cobrança mensal automática na Hotmart'}
+                      {isAgencySoon
+                        ? 'Lançamento em breve'
+                        : plan.price === 0
+                        ? 'Sem cartão de crédito'
+                        : 'Cobrança mensal automática na Hotmart'}
                     </span>
                   </div>
 
@@ -222,7 +248,16 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 
                 {/* Botão de Ação do Card */}
                 <div className="pt-2">
-                  {isCurrent ? (
+                  {isAgencySoon ? (
+                    <Button
+                      variant="outline"
+                      className="w-full border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800/60 cursor-not-allowed text-xs font-semibold"
+                      disabled
+                    >
+                      <Lock className="w-3.5 h-3.5 mr-1.5 opacity-70" />
+                      Em Breve
+                    </Button>
+                  ) : isCurrent ? (
                     <Button
                       variant="outline"
                       className="w-full border-zinc-200 dark:border-zinc-700 text-zinc-500 cursor-default"
