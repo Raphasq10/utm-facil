@@ -1,4 +1,4 @@
-# Gerador de Links UTM — Itaipu Parquetec
+# Gerador de Links UTM 
 
 Aplicação web desenvolvida para a equipe de Comunicação e Marketing do Itaipu Parquetec, centralizando a geração padronizada de URLs rastreáveis (Google Analytics 4), o armazenamento seguro do histórico por projetos, a edição protegida de links e a exportação de guias estáticos (HTML autônomo com regras e botões de cópia em 1 clique) para o time de conteúdo e criação.
 
