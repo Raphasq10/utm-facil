@@ -59,41 +59,41 @@ export function Header({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-18 py-3">
           {/* Logo & Marca Comercial CampanhaUTM */}
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold shadow-sm">
-              <Link2 className="w-5 h-5 text-slate-950" />
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold shadow-sm shrink-0">
+              <Link2 className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-base tracking-tight text-white">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
                   Campanha<span className="text-emerald-400">UTM</span>
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="hidden md:inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   campanhautm.com.br
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-[11px] text-slate-400 hidden lg:block">
                 Plataforma de Taxonomia GA4 & Banco Central de Links
               </p>
             </div>
           </div>
 
           {/* Seletor de Projetos, Ações e Perfil do Usuário */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Seletor de Projeto Ativo */}
             <div className="relative">
               <div className="flex items-center">
                 <button
                   type="button"
                   onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
-                  className="flex items-center gap-2.5 bg-slate-800/90 hover:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-700 text-sm font-medium transition-all text-slate-200 cursor-pointer"
+                  className="flex items-center gap-1.5 sm:gap-2.5 bg-slate-800/90 hover:bg-slate-800 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-slate-700 text-xs sm:text-sm font-medium transition-all text-slate-200 cursor-pointer"
                 >
-                  <FolderKanban className="w-4 h-4 text-emerald-400" />
-                  <span className="max-w-[130px] sm:max-w-[180px] truncate text-white">
-                    {activeProject ? activeProject.name : 'Selecionar Projeto'}
+                  <FolderKanban className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 shrink-0" />
+                  <span className="max-w-[85px] sm:max-w-[180px] truncate text-white">
+                    {activeProject ? activeProject.name : 'Selecionar'}
                   </span>
-                  <span className="text-[11px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md font-mono">
-                    {linksCount} {linksCount === 1 ? 'link' : 'links'}
+                  <span className="text-[10px] sm:text-[11px] bg-slate-700 text-slate-300 px-1.5 sm:px-2 py-0.5 rounded-md font-mono shrink-0">
+                    {linksCount}
                   </span>
                 </button>
 

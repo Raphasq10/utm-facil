@@ -422,14 +422,14 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ activeProject, onSaveLin
             </div>
 
             {/* Ações de Cópia e Gravação */}
-            <div className="flex items-center justify-between pt-1 gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-1 gap-2.5">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={handleCopyPreview}
                 disabled={!previewUrl}
-                className="text-xs font-semibold cursor-pointer border-slate-300 dark:border-zinc-700"
+                className="w-full sm:w-auto h-10 sm:h-9 text-xs font-semibold cursor-pointer border-slate-300 dark:border-zinc-700"
               >
                 {copied ? (
                   <>
@@ -446,7 +446,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ activeProject, onSaveLin
                 type="submit"
                 size="sm"
                 disabled={!previewUrl || isSubmitting || !activeProject}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md shadow-emerald-600/20 cursor-pointer"
+                className="w-full sm:w-auto h-10 sm:h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md shadow-emerald-600/20 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>

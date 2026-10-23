@@ -18,6 +18,8 @@ import {
   Lock,
   XCircle,
   Copy,
+  Menu,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +37,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectPlan,
 }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index)
@@ -43,26 +46,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-white">
       {/* 1. NAVBAR / HEADER PÚBLICO */}
-      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
           {/* Logo & Marca */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-emerald-500/20">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-emerald-500/20 shrink-0">
               <Link2 className="w-5 h-5 text-slate-950" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-xl tracking-tight text-white">
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white">
                   Campanha<span className="text-emerald-400">UTM</span>
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   campanhautm.com.br
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Links de Navegação */}
+          {/* Links de Navegação Desktop */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#recursos" className="hover:text-emerald-400 transition-colors">
               Recursos
@@ -78,25 +81,69 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </a>
           </nav>
 
-          {/* Botões de Acesso (Login / Cadastro) */}
-          <div className="flex items-center gap-3">
+          {/* Botões de Acesso (Login / Cadastro / Menu Mobile) */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onLogin}
-              className="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
               Entrar
             </button>
             <Button
               type="button"
               onClick={onSignup}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-xl text-sm shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
             >
-              Começar Grátis
-              <ArrowRight className="w-4 h-4 ml-1.5" />
+              <span className="hidden sm:inline">Começar Grátis</span>
+              <span className="sm:hidden">Criar Conta</span>
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1" />
             </Button>
+            {/* Botão Hambúrguer Mobile */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800 transition-colors cursor-pointer"
+              aria-label="Alternar menu de navegação"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5 text-emerald-400" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Menu Retrátil Mobile */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-lg px-4 py-4 space-y-3 animate-in slide-in-from-top-2">
+            <a
+              href="#recursos"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-slate-300 hover:text-emerald-400 border-b border-slate-900"
+            >
+              Recursos
+            </a>
+            <a
+              href="#comparativo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-slate-300 hover:text-emerald-400 border-b border-slate-900"
+            >
+              Planilha vs CampanhaUTM
+            </a>
+            <a
+              href="#planos"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-slate-300 hover:text-emerald-400 border-b border-slate-900"
+            >
+              Planos & Preços
+            </a>
+            <a
+              href="#faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-medium text-slate-300 hover:text-emerald-400"
+            >
+              Perguntas Frequentes
+            </a>
+          </div>
+        )}
       </header>
 
       {/* 2. HERO SECTION */}
