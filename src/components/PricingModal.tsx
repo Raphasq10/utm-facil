@@ -11,14 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PLAN_CONFIGS, type PlanTier } from '@/types/billing'
 import { useAuth } from '@/contexts/AuthContext'
-import { buildHotmartCheckoutUrl, processHotmartWebhook } from '@/lib/billing'
+import { buildHotmartCheckoutUrl } from '@/lib/billing'
 import { toast } from 'sonner'
 import {
   Check,
-  Zap,
   ShieldCheck,
   ExternalLink,
-  Sparkles,
   Loader2,
   Lock,
   QrCode,
@@ -36,120 +34,43 @@ export const PricingModal: React.FC<PricingModalProps> = ({
   onOpenChange,
   highlightPlan = 'pro',
 }) => {
-  const { user, updateUserPlan, isDemoMode } = useAuth()
+  const { user } = useAuth()
   const [isProcessing, setIsProcessing] = useState<string | null>(null)
 
   const currentPlan = user?.plan || 'free'
 
-  // Redireciona de forma segura para o checkout oficial da Hotmart
+  // Redireciona de forma segura para o checkout oficial
   const handleGoToCheckout = (planKey: PlanTier) => {
     if (isProcessing) return
     setIsProcessing(planKey)
 
     const checkoutUrl = buildHotmartCheckoutUrl(planKey, user?.email)
     if (!checkoutUrl) {
-      toast.error('Link de checkout da Hotmart não configurado.')
+      toast.error('Link de checkout não configurado.')
       setIsProcessing(null)
       return
     }
 
     // Feedback amigável antes de redirecionar
-    toast.info('Redirecionando para o ambiente seguro de pagamento da Hotmart...')
+    toast.info('Redirecionando para o ambiente seguro de pagamento...')
 
     setTimeout(() => {
-      // Abre o checkout da Hotmart em nova aba com segurança
+      // Abre o checkout em nova aba com segurança
       window.open(checkoutUrl, '_blank', 'noopener,noreferrer')
       setIsProcessing(null)
     }, 400)
   }
 
-  // Simula o recebimento do Webhook da Hotmart (para testes do aluno sem gastar dinheiro)
-  const handleSimulateHotmartWebhook = async (targetPlan: 'pro' | 'agency') => {
-    if (isProcessing) return
-    setIsProcessing(`simulate-${targetPlan}`)
-
-    try {
-      // Cria payload idêntico ao enviado pela Hotmart
-      const mockPayload = {
-        hottok: 'demo_hotmart_token',
-        event: 'PURCHASE_APPROVED',
-        data: {
-          buyer: {
-            email: user?.email || 'aluno@teste.com.br',
-            name: user?.fullName || 'Aluno Web Designer',
-          },
-          product: {
-            id: 123456,
-            name: `CampanhaUTM - Plano ${targetPlan.toUpperCase()}`,
-          },
-          purchase: {
-            status: 'approved',
-            approved_date: Date.now(),
-          },
-          subscription: {
-            plan: {
-              name: targetPlan === 'agency' ? 'Plano Agency Escala' : 'Plano Pro Profissional',
-            },
-          },
-        },
-      }
-
-      // Processa com validação Zod e proteção de Mass Assignment
-      const webhookResult = processHotmartWebhook(mockPayload, 'demo_hotmart_token')
-
-      if (webhookResult.success && webhookResult.newPlan) {
-        await updateUserPlan(webhookResult.newPlan)
-        toast.success(`Parabéns! Assinatura do ${PLAN_CONFIGS[webhookResult.newPlan].name} ativada via Hotmart!`)
-        onOpenChange(false)
-      } else {
-        toast.error(webhookResult.error || 'Falha ao processar confirmação.')
-      }
-    } finally {
-      setIsProcessing(null)
-    }
-  }
-
-  // Simula downgrade/cancelamento para testar o comportamento de volta ao Free
-  const handleSimulateCancellation = async () => {
-    if (isProcessing) return
-    setIsProcessing('simulate-cancel')
-    try {
-      const mockCancelPayload = {
-        hottok: 'demo_hotmart_token',
-        event: 'SUBSCRIPTION_CANCELLATION',
-        data: {
-          buyer: {
-            email: user?.email || '',
-          },
-          product: {
-            id: 123456,
-          },
-        },
-      }
-      const webhookResult = processHotmartWebhook(mockCancelPayload, 'demo_hotmart_token')
-      if (webhookResult.success && webhookResult.newPlan) {
-        await updateUserPlan(webhookResult.newPlan)
-        toast.info('Assinatura cancelada. Conta revertida para o Plano Free.')
-      }
-    } finally {
-      setIsProcessing(null)
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange} className="max-w-4xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto">
       <DialogClose onClick={() => onOpenChange(false)} />
-      <DialogContent className="max-w-4xl p-0">
+      <DialogContent className="max-w-4xl p-6 sm:p-8 max-h-[92vh] overflow-y-auto">
         <DialogHeader className="text-center space-y-2 pb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mx-auto">
-            <Zap className="w-3.5 h-3.5" />
-            <span>Planos Transparentes & Sem Pegadinhas</span>
-          </div>
           <DialogTitle className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
             Evolua a Gestão de Campanhas da sua Operação
           </DialogTitle>
           <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">
-            Escolha o nível ideal para o tamanho da sua agência ou e-commerce. Pague com Pix instantâneo ou Cartão de Crédito pela Hotmart.
+            Escolha o nível ideal para o tamanho da sua agência ou e-commerce. Pagamento seguro via Pix instantâneo ou Cartão de Crédito.
           </DialogDescription>
         </DialogHeader>
 
@@ -183,10 +104,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                   </div>
                 )}
 
-                {/* Badge de Destaque */}
-                {plan.isPopular && !isAgencySoon && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-sm tracking-wide uppercase">
+                {/* Badge de Destaque (Apenas exibida se o plano não for o atual) */}
+                {plan.isPopular && !isAgencySoon && !isCurrent && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[10px] font-extrabold px-3 py-0.5 rounded-b-lg shadow-sm tracking-wide uppercase">
                       Mais Escolhido
                     </span>
                   </div>
@@ -231,7 +152,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                         ? 'Lançamento em breve'
                         : plan.price === 0
                         ? 'Sem cartão de crédito'
-                        : 'Cobrança mensal automática na Hotmart'}
+                        : 'Cobrança mensal com renovação automática'}
                     </span>
                   </div>
 
@@ -267,16 +188,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                     </Button>
                   ) : planKey === 'free' ? (
                     <Button
-                      variant="ghost"
-                      onClick={handleSimulateCancellation}
-                      disabled={isProcessing === 'simulate-cancel'}
-                      className="w-full text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 text-xs"
+                      variant="outline"
+                      className="w-full border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500 bg-transparent cursor-default text-xs"
+                      disabled
                     >
-                      {isProcessing === 'simulate-cancel' ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        'Reverter para o Plano Free'
-                      )}
+                      Plano Gratuito
                     </Button>
                   ) : (
                     <div className="space-y-2">
@@ -297,25 +213,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                           </>
                         ) : (
                           <>
-                            Assinar na Hotmart
+                            Assinar Plano Pro
                             <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
                           </>
                         )}
                       </Button>
-
-                      {/* Botão de Teste Rápido para o Aluno (Modo Demo / Desenvolvimento) */}
-                      {isDemoMode && (
-                        <button
-                          type="button"
-                          onClick={() => handleSimulateHotmartWebhook(planKey)}
-                          disabled={Boolean(isProcessing)}
-                          className="w-full py-1 text-[11px] text-emerald-700 dark:text-emerald-300 hover:underline flex items-center justify-center gap-1 cursor-pointer font-medium"
-                          title="Simula a confirmação de pagamento instantaneamente no seu navegador"
-                        >
-                          <Sparkles className="w-3 h-3 text-emerald-500" />
-                          Simular Aprovação Hotmart (Teste Rápido)
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
@@ -324,11 +226,11 @@ export const PricingModal: React.FC<PricingModalProps> = ({
           })}
         </div>
 
-        {/* Rodapé com Selos de Confiança Hotmart */}
+        {/* Rodapé com Selos de Confiança */}
         <div className="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Processado com segurança pela <strong>Hotmart</strong></span>
+            <span>Pagamento 100% seguro e criptografado</span>
           </div>
           <div className="flex items-center gap-1.5">
             <QrCode className="w-4 h-4 text-emerald-600" />

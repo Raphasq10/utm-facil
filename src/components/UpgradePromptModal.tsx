@@ -81,7 +81,7 @@ export const UpgradePromptModal: React.FC<UpgradePromptModalProps> = ({
             <li>Até 10 Projetos / Clientes simultâneos</li>
             <li>Links UTM 100% ilimitados</li>
             <li>Exportação de Guias HTML offline para clientes</li>
-            <li>Pagamento seguro via Pix ou Cartão na Hotmart</li>
+            <li>Pagamento seguro via Pix ou Cartão de Crédito</li>
           </ul>
         </div>
 
@@ -110,7 +110,7 @@ export const UpgradePromptModal: React.FC<UpgradePromptModalProps> = ({
 
         <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Checkout Hotmart • 7 dias de garantia incondicional</span>
+          <span>Checkout Seguro • 7 dias de garantia incondicional</span>
         </div>
       </DialogContent>
     </Dialog>

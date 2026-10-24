@@ -191,7 +191,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Pagamento seguro via Pix na Hotmart</span>
+              <span>Pagamento seguro via Pix ou Cartão</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -483,7 +483,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Escolha o plano ideal para a sua operação
             </h2>
             <p className="text-slate-400 text-sm">
-              Comece gratuitamente hoje mesmo. Faça upgrade para Pix ou Cartão de Crédito na Hotmart com 7 dias de garantia incondicional.
+              Comece gratuitamente hoje mesmo. Faça upgrade para Pix ou Cartão de Crédito com 7 dias de garantia incondicional.
             </p>
           </div>
 
@@ -534,7 +534,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <span className="text-4xl font-extrabold text-white">R$ 47</span>
                     <span className="text-xs text-slate-400">/mês</span>
                   </div>
-                  <span className="text-xs text-emerald-400 block mt-1">Pix ou Cartão de Crédito na Hotmart</span>
+                  <span className="text-xs text-emerald-400 block mt-1">Pix ou Cartão com Liberação Imediata</span>
                 </div>
                 <ul className="space-y-3 text-xs text-slate-200 mb-8">
                   <li className="flex items-center gap-2 font-medium">
@@ -559,7 +559,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => onSelectPlan('pro')}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 shadow-lg shadow-emerald-600/30 cursor-pointer transition-all"
               >
-                Assinar Plano Pro na Hotmart
+                Assinar Plano Pro
                 <ExternalLink className="w-4 h-4 ml-1.5" />
               </Button>
             </div>
@@ -617,7 +617,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-xs text-slate-400">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Checkout Seguro <strong>Hotmart</strong></span>
+              <span>Checkout 100% <strong>Seguro</strong></span>
             </div>
             <div className="flex items-center gap-2">
               <QrCode className="w-4 h-4 text-emerald-400" />
