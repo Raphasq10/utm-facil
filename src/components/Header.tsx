@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import {
   FolderKanban,
-  Lock,
-  Unlock,
   Download,
   Plus,
   LogOut,
@@ -25,8 +23,6 @@ interface HeaderProps {
   onDeleteProject?: (projectId: string) => void
   onOpenExportModal: () => void
   onOpenPricingModal: () => void
-  isEditor: boolean
-  onToggleEditorMode: () => void
   linksCount: number
   getProjectLinksCount?: (projectId: string) => number
 }
@@ -40,8 +36,6 @@ export function Header({
   onDeleteProject,
   onOpenExportModal,
   onOpenPricingModal,
-  isEditor,
-  onToggleEditorMode,
   linksCount,
   getProjectLinksCount,
 }: HeaderProps) {
@@ -237,34 +231,6 @@ export function Header({
               <Download className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Exportar Guia / CSV</span>
               <span className="md:hidden">Exportar</span>
-            </button>
-
-            {/* Toggle Modo Editor */}
-            <button
-              type="button"
-              onClick={onToggleEditorMode}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
-                isEditor
-                  ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/20'
-                  : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:text-slate-200'
-              }`}
-              title={
-                isEditor
-                  ? 'Modo Editor Ativo (Edição e Exclusão liberadas)'
-                  : 'Acesso Especial: clique para desbloquear edição com senha'
-              }
-            >
-              {isEditor ? (
-                <>
-                  <Unlock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="hidden sm:inline font-semibold">Editor</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="hidden sm:inline">Acesso Edição</span>
-                </>
-              )}
             </button>
 
             {/* Perfil do Usuário Autenticado & Logout */}

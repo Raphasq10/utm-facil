@@ -28,8 +28,6 @@ import {
   saveLink,
   updateLink,
   deleteLink,
-  isEditorAuthenticated,
-  logoutEditor,
   clearDatabase,
 } from '@/lib/storage'
 import type { Project, UtmLink } from '@/types'
@@ -40,7 +38,7 @@ export function App() {
   const [projects, setProjects] = useState<Project[]>([])
   const [activeProjectId, setActiveId] = useState<string>('')
   const [links, setLinks] = useState<UtmLink[]>([])
-  const [isEditor, setIsEditor] = useState<boolean>(false)
+  const [isEditor, setIsEditor] = useState<boolean>(true)
 
   // Controle de Navegação Pública (Landing Page vs Login/Cadastro)
   const [publicView, setPublicView] = useState<'landing' | 'auth'>('landing')
@@ -153,7 +151,7 @@ export function App() {
 
     const loadedLinks = getLinks(currentActiveId, user.id)
     setLinks(loadedLinks)
-    setIsEditor(isEditorAuthenticated())
+    setIsEditor(true)
   }, [user])
 
   useEffect(() => {
@@ -285,28 +283,10 @@ export function App() {
   const handleDeleteLink = (id: string) => {
     if (!user) return
 
-    if (!isEditor) {
-      setLinkToEdit(links.find((l) => l.id === id) || null)
-      setEditModalOpen(true)
-      return
-    }
-
     if (window.confirm('Tem certeza de que deseja excluir este link rastreável?')) {
       deleteLink(id, user.id)
       toast.success('Link removido do projeto.')
       setLinks(getLinks(activeProjectId, user.id))
-    }
-  }
-
-  // Alterna Modo Editor
-  const handleToggleEditorMode = () => {
-    if (isEditor) {
-      logoutEditor()
-      setIsEditor(false)
-      toast.info('Modo Editor encerrado. Sistema em modo leitura e cópia.')
-    } else {
-      setLinkToEdit(null)
-      setEditModalOpen(true)
     }
   }
 
@@ -406,8 +386,6 @@ export function App() {
         onDeleteProject={handleDeleteProject}
         onOpenExportModal={() => setExportModalOpen(true)}
         onOpenPricingModal={() => setPricingModalOpen(true)}
-        isEditor={isEditor}
-        onToggleEditorMode={handleToggleEditorMode}
         linksCount={links.length}
         getProjectLinksCount={getProjectLinksCount}
       />
