@@ -12,7 +12,7 @@ import { AuthView } from '@/components/AuthView'
 import { LandingPage } from '@/components/LandingPage'
 import { PricingModal } from '@/components/PricingModal'
 import { UpgradePromptModal } from '@/components/UpgradePromptModal'
-import { LegalModal, type LegalDocType } from '@/components/LegalModal'
+import { LegalView, type LegalDocType } from '@/components/LegalView'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { checkProjectLimit, checkLinkLimit, buildHotmartCheckoutUrl } from '@/lib/billing'
@@ -40,8 +40,8 @@ export function App() {
   const [links, setLinks] = useState<UtmLink[]>([])
   const [isEditor, setIsEditor] = useState<boolean>(true)
 
-  // Controle de Navegação Pública (Landing Page vs Login/Cadastro)
-  const [publicView, setPublicView] = useState<'landing' | 'auth'>('landing')
+  // Controle de Navegação Pública (Landing Page vs Login/Cadastro vs Documentos Legais)
+  const [publicView, setPublicView] = useState<'landing' | 'auth' | 'legal'>('landing')
   const [authInitialTab, setAuthInitialTab] = useState<'login' | 'signup'>('login')
 
   // Navegação direta por rotas amigáveis (ex: /login, /cadastro)
@@ -61,18 +61,23 @@ export function App() {
     }
   }, [])
 
-  // Modais de Termos e Privacidade (LGPD & Hotmart)
-  const [legalModalOpen, setLegalModalOpen] = useState(false)
+  // Documentos Legais Institucionais (Termos & LGPD)
   const [legalDocType, setLegalDocType] = useState<LegalDocType>('terms')
 
   const handleOpenTerms = useCallback(() => {
     setLegalDocType('terms')
-    setLegalModalOpen(true)
+    setPublicView('legal')
+    if (window.location.pathname !== '/termos') {
+      window.history.pushState(null, '', '/termos')
+    }
   }, [])
 
   const handleOpenPrivacy = useCallback(() => {
     setLegalDocType('privacy')
-    setLegalModalOpen(true)
+    setPublicView('legal')
+    if (window.location.pathname !== '/privacidade') {
+      window.history.pushState(null, '', '/privacidade')
+    }
   }, [])
 
   // Sincroniza rotas URL com a interface (suporte a /login, /entrar, /cadastro, /termos, /privacidade)
@@ -87,13 +92,13 @@ export function App() {
         path.startsWith('/terms')
       ) {
         setLegalDocType('terms')
-        setLegalModalOpen(true)
+        setPublicView('legal')
       } else if (
         path.startsWith('/privacidade') ||
         path.startsWith('/privacy')
       ) {
         setLegalDocType('privacy')
-        setLegalModalOpen(true)
+        setPublicView('legal')
       } else if (
         path.startsWith('/login') ||
         path.startsWith('/entrar') ||
@@ -311,8 +316,20 @@ export function App() {
     )
   }
 
-  // 2. Experiência Pública: Landing Page de alta conversão ou Login/Cadastro
+  // 2. Experiência Pública: Landing Page, Login/Cadastro ou Documentos Legais
   if (!user) {
+    if (publicView === 'legal') {
+      return (
+        <>
+          <Toaster position="top-right" richColors closeButton />
+          <LegalView
+            initialDoc={legalDocType}
+            onBackToLanding={navigateToLanding}
+          />
+        </>
+      )
+    }
+
     if (publicView === 'landing') {
       return (
         <>
@@ -333,11 +350,6 @@ export function App() {
             onOpenTerms={handleOpenTerms}
             onOpenPrivacy={handleOpenPrivacy}
           />
-          <LegalModal
-            open={legalModalOpen}
-            onOpenChange={setLegalModalOpen}
-            initialDoc={legalDocType}
-          />
         </>
       )
     }
@@ -351,10 +363,18 @@ export function App() {
           onOpenTerms={handleOpenTerms}
           onOpenPrivacy={handleOpenPrivacy}
         />
-        <LegalModal
-          open={legalModalOpen}
-          onOpenChange={setLegalModalOpen}
+      </>
+    )
+  }
+
+  // 3. Documento Legal acessado por usuário logado
+  if (publicView === 'legal') {
+    return (
+      <>
+        <Toaster position="top-right" richColors closeButton />
+        <LegalView
           initialDoc={legalDocType}
+          onBackToLanding={() => setPublicView('landing')}
         />
       </>
     )
@@ -542,12 +562,6 @@ export function App() {
         onOpenChange={setUpgradePromptOpen}
         onOpenPricing={() => setPricingModalOpen(true)}
         limitReason={upgradeReason}
-      />
-
-      <LegalModal
-        open={legalModalOpen}
-        onOpenChange={setLegalModalOpen}
-        initialDoc={legalDocType}
       />
     </div>
   )
