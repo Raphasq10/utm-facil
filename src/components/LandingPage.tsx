@@ -28,12 +28,16 @@ interface LandingPageProps {
   onLogin: () => void
   onSignup: () => void
   onSelectPlan: (plan: PlanTier) => void
+  onOpenTerms?: () => void
+  onOpenPrivacy?: () => void
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onLogin,
   onSignup,
   onSelectPlan,
+  onOpenTerms,
+  onOpenPrivacy,
 }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -724,6 +728,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               alt="CampanhaUTM"
               className="h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
             />
+          </div>
+
+          <div className="flex items-center gap-4 text-xs">
+            <button
+              type="button"
+              onClick={onOpenTerms}
+              className="text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
+            >
+              Termos de Uso
+            </button>
+            <span className="text-slate-700">•</span>
+            <button
+              type="button"
+              onClick={onOpenPrivacy}
+              className="text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer"
+            >
+              Política de Privacidade
+            </button>
           </div>
 
           <p className="text-center sm:text-right text-[11px] text-slate-500">

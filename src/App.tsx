@@ -12,6 +12,7 @@ import { AuthView } from '@/components/AuthView'
 import { LandingPage } from '@/components/LandingPage'
 import { PricingModal } from '@/components/PricingModal'
 import { UpgradePromptModal } from '@/components/UpgradePromptModal'
+import { LegalModal, type LegalDocType } from '@/components/LegalModal'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { checkProjectLimit, checkLinkLimit, buildHotmartCheckoutUrl } from '@/lib/billing'
@@ -62,7 +63,21 @@ export function App() {
     }
   }, [])
 
-  // Sincroniza rotas URL com a interface (suporte a /login, /entrar, /cadastro direto)
+  // Modais de Termos e Privacidade (LGPD & Hotmart)
+  const [legalModalOpen, setLegalModalOpen] = useState(false)
+  const [legalDocType, setLegalDocType] = useState<LegalDocType>('terms')
+
+  const handleOpenTerms = useCallback(() => {
+    setLegalDocType('terms')
+    setLegalModalOpen(true)
+  }, [])
+
+  const handleOpenPrivacy = useCallback(() => {
+    setLegalDocType('privacy')
+    setLegalModalOpen(true)
+  }, [])
+
+  // Sincroniza rotas URL com a interface (suporte a /login, /entrar, /cadastro, /termos, /privacidade)
   useEffect(() => {
     const handleUrlRouting = () => {
       const path = window.location.pathname.toLowerCase()
@@ -70,6 +85,18 @@ export function App() {
       const hash = window.location.hash.toLowerCase()
 
       if (
+        path.startsWith('/termos') ||
+        path.startsWith('/terms')
+      ) {
+        setLegalDocType('terms')
+        setLegalModalOpen(true)
+      } else if (
+        path.startsWith('/privacidade') ||
+        path.startsWith('/privacy')
+      ) {
+        setLegalDocType('privacy')
+        setLegalModalOpen(true)
+      } else if (
         path.startsWith('/login') ||
         path.startsWith('/entrar') ||
         search.includes('login') ||
@@ -323,6 +350,13 @@ export function App() {
               }
               navigateToAuth('signup')
             }}
+            onOpenTerms={handleOpenTerms}
+            onOpenPrivacy={handleOpenPrivacy}
+          />
+          <LegalModal
+            open={legalModalOpen}
+            onOpenChange={setLegalModalOpen}
+            initialDoc={legalDocType}
           />
         </>
       )
@@ -334,6 +368,13 @@ export function App() {
         <AuthView
           initialMode={authInitialTab}
           onBackToLanding={navigateToLanding}
+          onOpenTerms={handleOpenTerms}
+          onOpenPrivacy={handleOpenPrivacy}
+        />
+        <LegalModal
+          open={legalModalOpen}
+          onOpenChange={setLegalModalOpen}
+          initialDoc={legalDocType}
         />
       </>
     )
@@ -523,6 +564,12 @@ export function App() {
         onOpenChange={setUpgradePromptOpen}
         onOpenPricing={() => setPricingModalOpen(true)}
         limitReason={upgradeReason}
+      />
+
+      <LegalModal
+        open={legalModalOpen}
+        onOpenChange={setLegalModalOpen}
+        initialDoc={legalDocType}
       />
     </div>
   )

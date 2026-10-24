@@ -44,11 +44,15 @@ export type AuthMode =
 interface AuthViewProps {
   initialMode?: 'login' | 'signup'
   onBackToLanding?: () => void
+  onOpenTerms?: () => void
+  onOpenPrivacy?: () => void
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({
   initialMode = 'login',
   onBackToLanding,
+  onOpenTerms,
+  onOpenPrivacy,
 }) => {
   const [mode, setMode] = useState<AuthMode>(initialMode)
   const [pendingEmail, setPendingEmail] = useState<string>('')
@@ -678,6 +682,27 @@ export const AuthView: React.FC<AuthViewProps> = ({
                   </Button>
                 </form>
               )}
+
+              {/* Termos de Uso e Privacidade */}
+              <p className="text-[11px] text-zinc-500 text-center mt-6">
+                Ao continuar, você concorda com os nossos{' '}
+                <button
+                  type="button"
+                  onClick={onOpenTerms}
+                  className="text-zinc-400 hover:text-emerald-400 underline underline-offset-2 cursor-pointer transition-colors"
+                >
+                  Termos de Uso
+                </button>{' '}
+                e{' '}
+                <button
+                  type="button"
+                  onClick={onOpenPrivacy}
+                  className="text-zinc-400 hover:text-emerald-400 underline underline-offset-2 cursor-pointer transition-colors"
+                >
+                  Política de Privacidade
+                </button>
+                .
+              </p>
             </div>
           )}
         </div>
