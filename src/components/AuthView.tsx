@@ -55,6 +55,13 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResending, setIsResending] = useState(false)
 
+  // Sincroniza modo quando initialMode mudar
+  useEffect(() => {
+    if (initialMode) {
+      setMode(initialMode)
+    }
+  }, [initialMode])
+
   const {
     signIn,
     signUp,

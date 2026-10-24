@@ -45,6 +45,58 @@ export function App() {
   const [publicView, setPublicView] = useState<'landing' | 'auth'>('landing')
   const [authInitialTab, setAuthInitialTab] = useState<'login' | 'signup'>('login')
 
+  // Navegação direta por rotas amigáveis (ex: /login, /cadastro)
+  const navigateToAuth = useCallback((tab: 'login' | 'signup') => {
+    setAuthInitialTab(tab)
+    setPublicView('auth')
+    const targetPath = tab === 'login' ? '/login' : '/cadastro'
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState(null, '', targetPath)
+    }
+  }, [])
+
+  const navigateToLanding = useCallback(() => {
+    setPublicView('landing')
+    if (window.location.pathname !== '/') {
+      window.history.pushState(null, '', '/')
+    }
+  }, [])
+
+  // Sincroniza rotas URL com a interface (suporte a /login, /entrar, /cadastro direto)
+  useEffect(() => {
+    const handleUrlRouting = () => {
+      const path = window.location.pathname.toLowerCase()
+      const search = window.location.search.toLowerCase()
+      const hash = window.location.hash.toLowerCase()
+
+      if (
+        path.startsWith('/login') ||
+        path.startsWith('/entrar') ||
+        search.includes('login') ||
+        hash.includes('login')
+      ) {
+        setAuthInitialTab('login')
+        setPublicView('auth')
+      } else if (
+        path.startsWith('/cadastro') ||
+        path.startsWith('/signup') ||
+        path.startsWith('/criar-conta') ||
+        path.startsWith('/registro') ||
+        search.includes('signup') ||
+        hash.includes('signup')
+      ) {
+        setAuthInitialTab('signup')
+        setPublicView('auth')
+      } else if (path === '/' || path === '') {
+        setPublicView('landing')
+      }
+    }
+
+    handleUrlRouting()
+    window.addEventListener('popstate', handleUrlRouting)
+    return () => window.removeEventListener('popstate', handleUrlRouting)
+  }, [])
+
   // Modais Funcionais
   const [projectModalOpen, setProjectModalOpen] = useState(false)
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null)
@@ -259,18 +311,9 @@ export function App() {
         <>
           <Toaster position="top-right" richColors closeButton />
           <LandingPage
-            onLogin={() => {
-              setAuthInitialTab('login')
-              setPublicView('auth')
-            }}
-            onSignup={() => {
-              setAuthInitialTab('signup')
-              setPublicView('auth')
-            }}
-            onSelectPlan={(_plan) => {
-              setAuthInitialTab('signup')
-              setPublicView('auth')
-            }}
+            onLogin={() => navigateToAuth('login')}
+            onSignup={() => navigateToAuth('signup')}
+            onSelectPlan={(_plan) => navigateToAuth('signup')}
           />
         </>
       )
@@ -281,7 +324,7 @@ export function App() {
         <Toaster position="top-right" richColors closeButton />
         <AuthView
           initialMode={authInitialTab}
-          onBackToLanding={() => setPublicView('landing')}
+          onBackToLanding={navigateToLanding}
         />
       </>
     )
