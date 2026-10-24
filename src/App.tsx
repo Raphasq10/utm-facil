@@ -13,6 +13,7 @@ import { LandingPage } from '@/components/LandingPage'
 import { PricingModal } from '@/components/PricingModal'
 import { UpgradePromptModal } from '@/components/UpgradePromptModal'
 import { LegalView, type LegalDocType } from '@/components/LegalView'
+import { CookieConsent } from '@/components/CookieConsent'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { checkProjectLimit, checkLinkLimit, buildHotmartCheckoutUrl } from '@/lib/billing'
@@ -326,6 +327,10 @@ export function App() {
             initialDoc={legalDocType}
             onBackToLanding={navigateToLanding}
           />
+          <CookieConsent
+            onOpenPrivacy={handleOpenPrivacy}
+            onOpenTerms={handleOpenTerms}
+          />
         </>
       )
     }
@@ -350,6 +355,10 @@ export function App() {
             onOpenTerms={handleOpenTerms}
             onOpenPrivacy={handleOpenPrivacy}
           />
+          <CookieConsent
+            onOpenPrivacy={handleOpenPrivacy}
+            onOpenTerms={handleOpenTerms}
+          />
         </>
       )
     }
@@ -362,6 +371,10 @@ export function App() {
           onBackToLanding={navigateToLanding}
           onOpenTerms={handleOpenTerms}
           onOpenPrivacy={handleOpenPrivacy}
+        />
+        <CookieConsent
+          onOpenPrivacy={handleOpenPrivacy}
+          onOpenTerms={handleOpenTerms}
         />
       </>
     )
@@ -376,6 +389,10 @@ export function App() {
           initialDoc={legalDocType}
           onBackToLanding={() => setPublicView('landing')}
         />
+        <CookieConsent
+          onOpenPrivacy={handleOpenPrivacy}
+          onOpenTerms={handleOpenTerms}
+        />
       </>
     )
   }
@@ -386,6 +403,10 @@ export function App() {
       <>
         <Toaster position="top-right" richColors closeButton />
         <AuthView onBackToLanding={() => setPublicView('landing')} />
+        <CookieConsent
+          onOpenPrivacy={handleOpenPrivacy}
+          onOpenTerms={handleOpenTerms}
+        />
       </>
     )
   }
@@ -562,6 +583,12 @@ export function App() {
         onOpenChange={setUpgradePromptOpen}
         onOpenPricing={() => setPricingModalOpen(true)}
         limitReason={upgradeReason}
+      />
+
+      {/* Banner / Etiqueta de Consentimento de Cookies (LGPD) */}
+      <CookieConsent
+        onOpenPrivacy={handleOpenPrivacy}
+        onOpenTerms={handleOpenTerms}
       />
     </div>
   )
