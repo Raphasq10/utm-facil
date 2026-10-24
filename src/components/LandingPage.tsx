@@ -18,6 +18,7 @@ import {
   XCircle,
   Menu,
   X,
+  Flame,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { PlanTier } from '@/types/billing'
@@ -46,6 +47,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-white">
+      {/* 0. BARRA SUPERIOR: URGÊNCIA BLACK FRIDAY */}
+      <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-emerald-600 text-white text-xs font-bold py-2.5 px-4 text-center flex items-center justify-center gap-2 shadow-lg relative z-50">
+        <span className="bg-black/40 px-2.5 py-0.5 rounded-full text-[11px] uppercase tracking-wider flex items-center gap-1 font-black">
+          <Flame className="w-3.5 h-3.5 text-amber-300 animate-bounce" />
+          Plantão Black Friday
+        </span>
+        <span className="hidden sm:inline">
+          Sua agência ou loja pronta para a maior data do ano: rastreamento blindado sem perder métricas no GA4.
+        </span>
+        <span className="sm:hidden">
+          Blindagem de métricas e links para a Black Friday.
+        </span>
+        <a
+          href="#blackfriday"
+          className="underline hover:text-amber-200 ml-1.5 font-extrabold cursor-pointer"
+        >
+          Saiba como blindar →
+        </a>
+      </div>
+
       {/* 1. NAVBAR / HEADER PÚBLICO */}
       <header className="sticky top-0 z-50 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
@@ -60,6 +81,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Links de Navegação Desktop */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+            <a href="#blackfriday" className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1.5 transition-colors">
+              <Flame className="w-4 h-4 text-amber-400" />
+              Black Friday
+            </a>
             <a href="#recursos" className="hover:text-emerald-400 transition-colors">
               Recursos
             </a>
@@ -108,6 +133,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-800/80 bg-slate-950/95 backdrop-blur-lg px-4 py-4 space-y-3 animate-in slide-in-from-top-2">
             <a
+              href="#blackfriday"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-bold text-amber-400 hover:text-amber-300 border-b border-slate-900 flex items-center gap-2"
+            >
+              <Flame className="w-4 h-4 text-amber-400" />
+              Especial Black Friday
+            </a>
+            <a
               href="#recursos"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-sm font-medium text-slate-300 hover:text-emerald-400 border-b border-slate-900"
@@ -150,21 +183,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             
             {/* Coluna Esquerda: Frase Destaque, Descrição e Ações */}
             <div className="lg:col-span-6 text-left space-y-6">
-              {/* Badge de introdução */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-semibold animate-in fade-in">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                <span>A Ferramenta Oficial de Taxonomia GA4 & Performance</span>
+              {/* Badge de introdução Black Friday */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-emerald-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold animate-in fade-in">
+                <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <span>Especial Black Friday • Rastreamento & Blindagem GA4</span>
               </div>
 
               {/* Título Principal de Alto Impacto (SEO & Frase Destaque) */}
               <h1 className="text-3xl sm:text-5xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight sm:leading-tight">
-                Chega de planilhas quebradas e links perdidos no WhatsApp
+                Prepare seus links para a{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-rose-400 to-emerald-400">
+                  Black Friday
+                </span>{' '}
+                sem quebrar as métricas no GA4
               </h1>
 
               {/* Subtítulo explicativo */}
               <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-                Centralize, higienize e proteja todos os links de campanhas da sua agência ou e-commerce em segundos. 
-                Relatórios 100% confiáveis no Google Analytics 4 por um preço acessível.
+                Na Black Friday o volume de criativos multiplica por 10. Centralize, higienize e entregue os links certos aos times de copy e tráfego em segundos. Rastreamento 100% confiável no Google Analytics 4 sem planilhas quebradas.
               </p>
 
               {/* CTAs do Hero */}
@@ -172,9 +208,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <Button
                   size="lg"
                   onClick={onSignup}
-                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-7 py-3.5 rounded-xl shadow-xl shadow-emerald-600/30 text-base transition-all cursor-pointer flex items-center justify-center"
+                  className="bg-gradient-to-r from-amber-500 via-rose-600 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-white font-bold px-7 py-3.5 rounded-xl shadow-xl shadow-rose-600/25 text-base transition-all cursor-pointer flex items-center justify-center"
                 >
-                  Criar Conta Gratuita
+                  Blindar Minha Black Friday
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <a
@@ -189,11 +225,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 text-xs text-slate-400 border-t border-slate-900/80">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Sem necessidade de cartão no Free</span>
+                  <span>Pronto para o pico da Black Friday</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Pagamento seguro via Pix ou Cartão</span>
+                  <span>Links UTM ilimitados no Pro</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -201,7 +237,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Pronto para usar em 30 segundos</span>
+                  <span>Exportação instantânea para o time</span>
                 </div>
               </div>
             </div>
@@ -295,6 +331,81 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Gere guias em HTML ou planilhas CSV com 1 clique para entregar aos copywriters, designers e clientes. Eles abrem no navegador e copiam o link sem precisar de login.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3.5. SEÇÃO EXCLUSIVA: BLINDAGEM PARA A BLACK FRIDAY */}
+      <section id="blackfriday" className="py-20 relative overflow-hidden bg-gradient-to-b from-slate-950 via-amber-950/20 to-slate-950 border-b border-amber-500/20">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold mb-4">
+              <Flame className="w-4 h-4 text-amber-400" />
+              <span>O Maior Teste de Fogo do Seu Tráfego Pago</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
+              Na Black Friday, um único link quebrado custa milhares de reais
+            </h2>
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              Durante a Black Friday, os custos de anúncio sobem e o volume de criativos explode. Se a sua UTM estiver errada, o Google Analytics 4 não atribui a venda ao anúncio certo.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {/* Card 1: Volume Insano */}
+            <div className="p-6 rounded-2xl bg-slate-900/90 border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-lg shadow-amber-500/5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-4 font-black text-lg">
+                10x
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Volume 10x de Criativos & Ofertas</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Dezenas de variações de criativos, ofertas relâmpago e links de afiliados subindo em poucas horas. Em planilhas, erros de digitação e links sem UTM são inevitáveis.
+              </p>
+            </div>
+
+            {/* Card 2: Plantão e Virada de Lote */}
+            <div className="p-6 rounded-2xl bg-slate-900/90 border border-rose-500/30 hover:border-rose-500/60 transition-all shadow-lg shadow-rose-500/5">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-4 font-black text-lg">
+                <Zap className="w-5 h-5" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Viradas de Lote na Madrugada</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Chega de desespero no WhatsApp às 23h pedindo o link da oferta. Deixe todas as campanhas criadas com antecedência e compartilhe um link autônomo com toda a equipe.
+              </p>
+            </div>
+
+            {/* Card 3: Atribuição Limpa GA4 */}
+            <div className="p-6 rounded-2xl bg-slate-900/90 border border-emerald-500/30 hover:border-emerald-500/60 transition-all shadow-lg shadow-emerald-500/5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4 font-black text-lg">
+                ROI
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Atribuição Impecável no GA4</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Descubra no detalhe qual anúncio, influenciador ou cupom trouxe o melhor ROI. Sem tráfego perdido no temido canal "Unassigned" do Google Analytics 4.
+              </p>
+            </div>
+          </div>
+
+          {/* Banner de Ação Black Friday */}
+          <div className="mt-12 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-emerald-950/40 border border-amber-500/40 max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left shadow-2xl">
+            <div>
+              <h4 className="text-lg sm:text-xl font-bold text-white mb-1">
+                Blindagem Black Friday com Links Ilimitados
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-400">
+                Ative o Plano Pro agora via Pix ou Cartão e comece a cadastrar os clientes e campanhas hoje.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => onSelectPlan('pro')}
+              className="bg-gradient-to-r from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-bold px-6 py-3 rounded-xl shadow-lg shrink-0 cursor-pointer text-sm"
+            >
+              Garantir Condição Especial
+              <ArrowRight className="w-4 h-4 ml-1.5" />
+            </Button>
           </div>
         </div>
       </section>
@@ -534,10 +645,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </Button>
             </div>
 
-            {/* PLANO PRO (DESTAQUE) */}
+            {/* PLANO PRO (DESTAQUE BLACK FRIDAY) */}
             <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-emerald-950/30 border-2 border-emerald-500 relative flex flex-col justify-between shadow-2xl shadow-emerald-500/10">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
-                Mais Escolhido por Agências
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 via-rose-500 to-emerald-400 text-slate-950 text-[11px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1.5 whitespace-nowrap">
+                <Flame className="w-3.5 h-3.5 text-slate-950" />
+                Especial Black Friday • Mais Escolhido
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white mb-1">Plano Pro</h3>
