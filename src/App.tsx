@@ -14,7 +14,7 @@ import { PricingModal } from '@/components/PricingModal'
 import { UpgradePromptModal } from '@/components/UpgradePromptModal'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
-import { checkProjectLimit, checkLinkLimit } from '@/lib/billing'
+import { checkProjectLimit, checkLinkLimit, buildHotmartCheckoutUrl } from '@/lib/billing'
 import {
   initStorage,
   getProjects,
@@ -313,7 +313,16 @@ export function App() {
           <LandingPage
             onLogin={() => navigateToAuth('login')}
             onSignup={() => navigateToAuth('signup')}
-            onSelectPlan={(_plan) => navigateToAuth('signup')}
+            onSelectPlan={(plan) => {
+              if (plan === 'pro') {
+                const checkoutUrl = buildHotmartCheckoutUrl('pro')
+                if (checkoutUrl) {
+                  window.open(checkoutUrl, '_blank')
+                  return
+                }
+              }
+              navigateToAuth('signup')
+            }}
           />
         </>
       )
