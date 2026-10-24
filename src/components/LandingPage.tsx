@@ -16,12 +16,10 @@ import {
   CreditCard,
   Lock,
   XCircle,
-  Copy,
   Menu,
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import type { PlanTier } from '@/types/billing'
 
 interface LandingPageProps {
@@ -141,110 +139,125 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         )}
       </header>
 
-      {/* 2. HERO SECTION */}
-      <section className="relative pt-16 pb-20 overflow-hidden">
+      {/* 2. HERO SECTION COM TELA DESKTOP & VÍDEO DEMONSTRATIVO */}
+      <section className="relative pt-12 sm:pt-16 pb-16 sm:pb-24 overflow-hidden">
         {/* Luzes de fundo atmosféricas */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-emerald-500/15 rounded-full blur-[130px] pointer-events-none" />
-        <div className="absolute top-1/3 right-10 w-[400px] h-[300px] bg-teal-500/10 rounded-full blur-[110px] pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 -translate-y-1/2 w-[550px] h-[350px] bg-emerald-500/15 rounded-full blur-[130px] pointer-events-none" />
+        <div className="absolute top-1/3 right-10 w-[450px] h-[350px] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          {/* Badge de introdução */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-semibold mb-6 animate-in fade-in">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>A Ferramenta Oficial de Taxonomia GA4 & Performance</span>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Coluna Esquerda: Frase Destaque, Descrição e Ações */}
+            <div className="lg:col-span-6 text-left space-y-6">
+              {/* Badge de introdução */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-semibold animate-in fade-in">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>A Ferramenta Oficial de Taxonomia GA4 & Performance</span>
+              </div>
 
-          {/* Título Principal de Alto Impacto */}
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight sm:leading-tight mb-6">
-            Chega de planilhas quebradas e links perdidos no WhatsApp
-          </h1>
+              {/* Título Principal de Alto Impacto (SEO & Frase Destaque) */}
+              <h1 className="text-3xl sm:text-5xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight sm:leading-tight">
+                Chega de planilhas quebradas e links perdidos no WhatsApp
+              </h1>
 
-          {/* Subtítulo explicativo */}
-          <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Centralize, higienize e proteja todos os links de campanhas da sua agência ou e-commerce em segundos. 
-            Relatórios 100% confiáveis no Google Analytics 4 por um preço acessível.
-          </p>
+              {/* Subtítulo explicativo */}
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
+                Centralize, higienize e proteja todos os links de campanhas da sua agência ou e-commerce em segundos. 
+                Relatórios 100% confiáveis no Google Analytics 4 por um preço acessível.
+              </p>
 
-          {/* CTAs do Hero */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Button
-              size="lg"
-              onClick={onSignup}
-              className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-8 py-3.5 rounded-xl shadow-xl shadow-emerald-600/30 text-base transition-all cursor-pointer"
-            >
-              Criar Conta Gratuita
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <a
-              href="#planos"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-900/60 hover:bg-slate-900 text-slate-200 font-semibold text-base transition-all inline-flex items-center justify-center gap-2"
-            >
-              Conhecer os Planos (a partir de R$ 0)
-            </a>
-          </div>
+              {/* CTAs do Hero */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                <Button
+                  size="lg"
+                  onClick={onSignup}
+                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-7 py-3.5 rounded-xl shadow-xl shadow-emerald-600/30 text-base transition-all cursor-pointer flex items-center justify-center"
+                >
+                  Criar Conta Gratuita
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <a
+                  href="#planos"
+                  className="px-6 py-3.5 rounded-xl border border-slate-700 hover:border-slate-600 bg-slate-900/60 hover:bg-slate-900 text-slate-200 font-semibold text-sm sm:text-base transition-all inline-flex items-center justify-center"
+                >
+                  Conhecer os Planos (a partir de R$ 0)
+                </a>
+              </div>
 
-          {/* Micro-provas sociais */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 pt-2 pb-6 border-b border-slate-900">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Sem necessidade de cartão de crédito no Free</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Pagamento seguro via Pix ou Cartão</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>100% no padrão oficial do Google Analytics 4</span>
-            </div>
-          </div>
-
-          {/* MOCKUP VISUAL INTERATIVO DO PRODUTO */}
-          <div className="mt-12 rounded-2xl p-2 bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700/80 shadow-2xl max-w-5xl mx-auto">
-            <div className="rounded-xl bg-slate-950 p-4 sm:p-6 text-left space-y-4">
-              {/* Barra superior do mockup */}
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 text-xs">
+              {/* Micro-provas sociais */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 text-xs text-slate-400 border-t border-slate-900/80">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-rose-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="text-slate-400 ml-2 font-mono text-[11px]">app.campanhautm.com.br/dashboard</span>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Sem necessidade de cartão no Free</span>
                 </div>
-                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-[10px]">
-                  Higienização Ativa
-                </Badge>
-              </div>
-
-              {/* Linha de parâmetros demonstrativa */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Origem (utm_source)</span>
-                  <span className="font-mono text-emerald-400 font-semibold">instagram</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Pagamento seguro via Pix ou Cartão</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Mídia (utm_medium)</span>
-                  <span className="font-mono text-sky-400 font-semibold">stories</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>100% no padrão oficial do GA4</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Campanha (utm_campaign)</span>
-                  <span className="font-mono text-purple-400 font-semibold">black-friday-2026</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Pronto para usar em 30 segundos</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Criativo (utm_content)</span>
-                  <span className="font-mono text-amber-400 font-semibold">banner-azul</span>
-                </div>
-              </div>
-
-              {/* Caixa de URL Final Concatena */}
-              <div className="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 font-mono text-xs text-slate-200 flex items-center justify-between gap-4 break-all">
-                <span>
-                  https://minhaloja.com.br/tenis?<strong className="text-emerald-400">utm_source=instagram</strong>&<strong className="text-sky-400">utm_medium=stories</strong>&<strong className="text-purple-400">utm_campaign=black-friday-2026</strong>
-                </span>
-                <span className="shrink-0 px-2.5 py-1 rounded-md bg-emerald-600 text-white text-[11px] font-semibold flex items-center gap-1">
-                  <Copy className="w-3 h-3" /> Copiado!
-                </span>
               </div>
             </div>
+
+            {/* Coluna Direita: Mockup Desktop com o Vídeo Real do Sistema */}
+            <div className="lg:col-span-6 w-full">
+              <div className="relative rounded-2xl p-1.5 sm:p-2 bg-gradient-to-b from-slate-700/80 via-slate-800/70 to-slate-900 border border-slate-700/80 shadow-2xl shadow-emerald-500/10">
+                
+                {/* Janela de Navegador Desktop (Header macOS style) */}
+                <div className="rounded-t-xl bg-slate-950 px-3.5 py-2.5 flex items-center justify-between border-b border-slate-800/80 text-xs">
+                  {/* Botões da Janela */}
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-rose-500/90 inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-amber-500/90 inline-block" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500/90 inline-block" />
+                  </div>
+
+                  {/* Barra de Endereço Fictícia */}
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-slate-300 max-w-[240px] sm:max-w-xs truncate">
+                    <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span className="truncate">campanhasutm.com.br/dashboard</span>
+                  </div>
+
+                  {/* Badge de Vídeo Ao Vivo */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider hidden sm:inline">
+                      Demonstração
+                    </span>
+                  </div>
+                </div>
+
+                {/* Conteúdo da Tela: Vídeo Real da Aplicação */}
+                <div className="rounded-b-xl overflow-hidden bg-slate-950 aspect-video relative flex items-center justify-center">
+                  <video
+                    src="/tela-do-sistema.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls
+                    className="w-full h-full object-cover"
+                    title="Demonstração do CampanhaUTM em ação"
+                  >
+                    Seu navegador não suporta a exibição deste vídeo.
+                  </video>
+                </div>
+              </div>
+
+              {/* Legenda explicativa sutil abaixo do vídeo */}
+              <p className="text-center text-xs text-slate-400 mt-3 flex items-center justify-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Veja como é rápido criar, padronizar e salvar suas campanhas.</span>
+              </p>
+            </div>
+
           </div>
         </div>
       </section>

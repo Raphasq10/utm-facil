@@ -4,6 +4,11 @@
 .env.local
 .env.production
 
+# Midias brutas na raiz
+tela do sistema.mp4
+*.mp4
+!public/*.mp4
+
 # Dependências
 node_modules
 dist
