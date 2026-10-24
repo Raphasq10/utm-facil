@@ -33,6 +33,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Helper para buscar o plano real e perfil no Supabase
+  const fetchProfileData = async (userId: string) => {
+    if (!supabase) return null
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('plan, full_name')
+        .eq('id', userId)
+        .maybeSingle()
+      if (!error && data) {
+        return data
+      }
+    } catch (err) {
+      console.error('[Auth] Erro ao buscar perfil no Supabase:', err)
+    }
+    return null
+  }
+
   // 1. Inicializa a sessão ao carregar a aplicação
   useEffect(() => {
     let isMounted = true
@@ -48,11 +66,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (isMounted) {
             if (session?.user) {
               const isConfirmed = Boolean(session.user.email_confirmed_at || session.user.confirmed_at)
+              const profile = await fetchProfileData(session.user.id)
+              const plan = (profile?.plan as 'free' | 'pro' | 'agency') || 'free'
+              const fullName = profile?.full_name || (session.user.user_metadata?.full_name as string) || session.user.email?.split('@')[0] || 'Usuário'
+
               setUser({
                 id: session.user.id,
                 email: session.user.email || '',
-                fullName: (session.user.user_metadata?.full_name as string) || session.user.email?.split('@')[0] || 'Usuário',
-                plan: 'free',
+                fullName,
+                plan,
                 emailConfirmed: isConfirmed,
               })
             } else {
@@ -84,14 +106,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Escuta mudanças de autenticação em tempo real no Supabase
     if (isSupabaseConfigured && supabase) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           const isConfirmed = Boolean(session.user.email_confirmed_at || session.user.confirmed_at)
+          const profile = await fetchProfileData(session.user.id)
+          if (!isMounted) return
+
+          const plan = (profile?.plan as 'free' | 'pro' | 'agency') || 'free'
+          const fullName = profile?.full_name || (session.user.user_metadata?.full_name as string) || session.user.email?.split('@')[0] || 'Usuário'
+
           setUser({
             id: session.user.id,
             email: session.user.email || '',
-            fullName: (session.user.user_metadata?.full_name as string) || session.user.email?.split('@')[0] || 'Usuário',
-            plan: 'free',
+            fullName,
+            plan,
             emailConfirmed: isConfirmed,
           })
         } else {
