@@ -53,7 +53,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanDetails> = {
     maxLinksPerProject: Infinity,
     allowHtmlExport: true,
     isPopular: true,
-    hotmartCheckoutUrl: 'https://pay.hotmart.com/J108170260D',
+    hotmartCheckoutUrl: 'https://pay.hotmart.com/J108170260D?bid=1795449001256',
   },
   agency: {
     id: 'agency',
