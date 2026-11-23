@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PLAN_CONFIGS, type PlanTier } from '@/types/billing'
 import { useAuth } from '@/contexts/AuthContext'
-import { buildHotmartCheckoutUrl } from '@/lib/billing'
+import { buildHotmartCheckoutUrl, HOTMART_CONSUMER_PORTAL_URL } from '@/lib/billing'
 import { toast } from 'sonner'
 import {
   Check,
@@ -21,6 +21,9 @@ import {
   Lock,
   QrCode,
   CreditCard,
+  Settings2,
+  AlertCircle,
+  Mail,
 } from 'lucide-react'
 
 interface PricingModalProps {
@@ -36,8 +39,15 @@ export const PricingModal: React.FC<PricingModalProps> = ({
 }) => {
   const { user } = useAuth()
   const [isProcessing, setIsProcessing] = useState<string | null>(null)
+  const [showCancelDetails, setShowCancelDetails] = useState(false)
 
   const currentPlan = user?.plan || 'free'
+  const isPaidSubscriber = currentPlan !== 'free'
+
+  const handleOpenPortal = () => {
+    toast.info('Abrindo portal seguro de assinatura e pagamentos...')
+    window.open(HOTMART_CONSUMER_PORTAL_URL, '_blank', 'noopener,noreferrer')
+  }
 
   // Redireciona de forma segura para o checkout oficial
   const handleGoToCheckout = (planKey: PlanTier) => {
@@ -225,6 +235,92 @@ export const PricingModal: React.FC<PricingModalProps> = ({
             )
           })}
         </div>
+
+        {/* Painel de Gestão de Assinatura Ativa (visível para assinantes Pro/Agency) */}
+        {isPaidSubscriber && (
+          <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/20 p-4 sm:p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-600 text-white">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    Assinatura Ativa
+                  </span>
+                  <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    {PLAN_CONFIGS[currentPlan]?.name} (R$ {PLAN_CONFIGS[currentPlan]?.price}/{PLAN_CONFIGS[currentPlan]?.billingPeriod})
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                  Vinculada ao e-mail <strong className="text-zinc-900 dark:text-zinc-200">{user?.email}</strong>. Altere sua forma de pagamento, consulte faturas ou cancele quando quiser sem burocracia.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleOpenPortal}
+                  className="bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 font-semibold text-xs px-3.5 py-2 rounded-xl cursor-pointer"
+                >
+                  <Settings2 className="w-3.5 h-3.5 mr-1.5" />
+                  Gerenciar Pagamento
+                  <ExternalLink className="w-3 h-3 ml-1.5 opacity-80" />
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowCancelDetails((prev) => !prev)}
+                  className="border-rose-300 dark:border-rose-800/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-medium text-xs px-3 py-2 rounded-xl cursor-pointer"
+                >
+                  {showCancelDetails ? 'Ocultar opções' : 'Cancelar assinatura'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Fluxo Transparente de Cancelamento */}
+            {showCancelDetails && (
+              <div className="pt-3 border-t border-emerald-500/20 space-y-3 text-xs text-zinc-600 dark:text-zinc-300 animate-in fade-in slide-in-from-top-1">
+                <div className="flex items-start gap-2.5 bg-white/80 dark:bg-zinc-900/80 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                  <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      Como cancelar sua assinatura em 1 minuto:
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 text-zinc-600 dark:text-zinc-400">
+                      <li>Clique no botão abaixo para abrir o portal seguro do assinante usando o e-mail <strong>{user?.email}</strong>.</li>
+                      <li>Selecione o produto <strong>Campanhas UTM</strong> e clique em <strong>Cancelar assinatura</strong>.</li>
+                      <li>A renovação automática é interrompida na hora e nosso sistema atualiza sua conta automaticamente.</li>
+                    </ol>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium pt-1">
+                      ✓ Seus projetos e links UTM já criados nunca são apagados. Sua conta apenas retorna aos limites do Plano Free para novas criações.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <a
+                    href={`mailto:rapha.mola@gmail.com?subject=${encodeURIComponent('Ajuda com assinatura CampanhaUTM')}&body=${encodeURIComponent(`Olá! Preciso de suporte com minha assinatura vinculada ao e-mail: ${user?.email || ''}`)}`}
+                    className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 underline"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                    Precisa de ajuda? Fale com o suporte
+                  </a>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleOpenPortal}
+                    className="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs px-4 py-2 rounded-xl cursor-pointer"
+                  >
+                    Ir para o Portal e Cancelar
+                    <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Rodapé com Selos de Confiança */}
         <div className="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-center gap-6 text-xs text-zinc-500">

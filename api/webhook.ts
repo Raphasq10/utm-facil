@@ -36,34 +36,56 @@ export default async function handler(req: any, res: any) {
     // Hotmart pode enviar como formato de URL encoded ou JSON
     const body = typeof payload === 'string' ? JSON.parse(payload) : payload
 
-    const event = body.event || body.status || ''
+    // Validação opcional de segurança do Hottok (se configurado na Vercel)
+    const expectedToken = process.env.HOTMART_WEBHOOK_TOKEN
+    if (expectedToken) {
+      const receivedToken =
+        req.headers?.['x-hotmart-hottok'] ||
+        req.headers?.['X-Hotmart-Hottok'] ||
+        body.hottok ||
+        ''
+      if (receivedToken !== expectedToken) {
+        console.warn('[Hotmart Webhook] Token hottok inválido ou ausente.')
+        return res.status(401).json({ error: 'Unauthorized webhook token' })
+      }
+    }
+
+    const rawEvent = body.event || body.status || ''
+    const event = String(rawEvent).trim().toUpperCase()
+
+    // Hotmart v2 envia data.buyer.email em compras e data.subscriber.email em cancelamentos de assinatura
     const buyerEmail =
       body.data?.buyer?.email ||
+      body.data?.subscriber?.email ||
       body.buyer?.email ||
+      body.subscriber?.email ||
       body.email ||
       ''
 
     const transactionId =
       body.data?.purchase?.transaction ||
+      body.data?.subscription?.subscriber?.code ||
       body.transaction ||
       body.data?.purchase?.order_date ||
       ''
 
     if (!buyerEmail) {
-      console.warn('[Hotmart Webhook] Requisição sem e-mail do comprador.')
+      console.warn('[Hotmart Webhook] Requisição sem e-mail do comprador/assinante.')
       return res.status(400).json({ error: 'E-mail do comprador não encontrado no payload' })
     }
 
     const cleanEmail = String(buyerEmail).trim().toLowerCase()
 
     // 1. Eventos de Compra Aprovada / Concluída
-    if (
-      event === 'PURCHASE_APPROVED' ||
-      event === 'PURCHASE_COMPLETE' ||
-      event === 'approved' ||
-      event === 'complete'
-    ) {
-      console.log(`[Hotmart Webhook] Ativando Plano Pro para: ${cleanEmail}`)
+    const APPROVAL_EVENTS = new Set([
+      'PURCHASE_APPROVED',
+      'PURCHASE_COMPLETE',
+      'APPROVED',
+      'COMPLETE',
+    ])
+
+    if (APPROVAL_EVENTS.has(event)) {
+      console.log(`[Hotmart Webhook] Ativando Plano Pro para: ${cleanEmail} (evento: ${event})`)
 
       const { data, error } = await supabase.rpc('apply_hotmart_purchase', {
         buyer_email: cleanEmail,
@@ -83,14 +105,22 @@ export default async function handler(req: any, res: any) {
       })
     }
 
-    // 2. Eventos de Cancelamento de Assinatura / Reembolso
-    if (
-      event === 'SUBSCRIPTION_CANCELLATION' ||
-      event === 'PURCHASE_REFUNDED' ||
-      event === 'PURCHASE_CHARGEBACK' ||
-      event === 'canceled'
-    ) {
-      console.log(`[Hotmart Webhook] Cancelando assinatura para: ${cleanEmail}`)
+    // 2. Eventos de Cancelamento de Assinatura / Expiração / Reembolso / Chargeback
+    const CANCELLATION_EVENTS = new Set([
+      'SUBSCRIPTION_CANCELLATION',
+      'SUBSCRIPTION_EXPIRED',
+      'PURCHASE_REFUNDED',
+      'PURCHASE_CHARGEBACK',
+      'PURCHASE_CANCELED',
+      'PURCHASE_PROTEST',
+      'CANCELED',
+      'REFUNDED',
+      'CHARGEBACK',
+      'EXPIRED',
+    ])
+
+    if (CANCELLATION_EVENTS.has(event)) {
+      console.log(`[Hotmart Webhook] Cancelando assinatura para: ${cleanEmail} (evento: ${event})`)
 
       const { data, error } = await supabase.rpc('apply_hotmart_cancellation', {
         buyer_email: cleanEmail,

@@ -8,11 +8,14 @@ import {
   Pencil,
   Trash2,
   Sparkles,
+  CreditCard,
+  ExternalLink,
 } from 'lucide-react'
 import type { Project } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { Badge } from '@/components/ui/badge'
 import { PLAN_CONFIGS } from '@/types/billing'
+import { HOTMART_CONSUMER_PORTAL_URL } from '@/lib/billing'
 
 interface HeaderProps {
   projects: Project[]
@@ -297,6 +300,22 @@ export function Header({
                               {user.plan || 'Free'}
                             </Badge>
                           </button>
+
+                          {user.plan && user.plan !== 'free' && (
+                            <a
+                              href={HOTMART_CONSUMER_PORTAL_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => setUserDropdownOpen(false)}
+                              className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <span className="flex items-center gap-2">
+                                <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                                Gerenciar / Cancelar
+                              </span>
+                              <ExternalLink className="w-3 h-3 text-slate-500" />
+                            </a>
+                          )}
 
                           <button
                             type="button"

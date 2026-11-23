@@ -779,16 +779,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 a: 'Não! O Plano Free é 100% gratuito e não exige nenhum dado financeiro. Você só precisa criar sua conta com e-mail e senha para começar a organizar seu primeiro projeto.',
               },
               {
-                q: 'Como funciona o pagamento via Hotmart?',
-                a: 'Ao escolher o Plano Pro ou Agency, você é direcionado para a página oficial de pagamento da Hotmart. Você pode pagar via Pix (com liberação imediata) ou Cartão de Crédito. Assim que o pagamento é aprovado, a Hotmart avisa nosso sistema e seu plano é desbloqueado automaticamente.',
+                q: 'Como funciona o pagamento e a liberação do Plano Pro?',
+                a: 'Ao escolher o Plano Pro, você é direcionado para o checkout seguro da Hotmart com seu e-mail já preenchido. Você pode pagar via Pix (com liberação instantânea) ou Cartão de Crédito. Assim que o pagamento é aprovado, nosso sistema libera o Plano Pro na sua conta automaticamente em segundos.',
               },
               {
                 q: 'Meus redatores e clientes precisam de conta para ver os links?',
                 a: 'Não! Esse é um dos maiores diferenciais do CampanhaUTM. Com o recurso de Exportar Guia em HTML, você gera um arquivo autônomo que pode ser enviado por e-mail ou WhatsApp. Qualquer membro da equipe pode abrir no navegador e copiar os links oficiais com 1 clique.',
               },
               {
-                q: 'O que acontece se eu cancelar minha assinatura?',
-                a: 'Você pode cancelar a qualquer momento diretamente pelo painel da Hotmart. Caso cancele, seus dados não são apagados; você apenas retorna aos limites do Plano Free para novas criações.',
+                q: 'Como funciona o cancelamento? Tem fidelidade?',
+                a: 'Nenhuma fidelidade e zero burocracia. Dentro do próprio painel do CampanhaUTM, em "Planos & Assinatura", você tem acesso direto ao portal da Hotmart para alterar o pagamento ou cancelar em 1 clique. Se cancelar, seus projetos e links já criados nunca são apagados; sua conta apenas retorna aos limites do Plano Free para novas criações.',
               },
               {
                 q: 'Por que a higienização de UTMs é tão importante para o GA4?',

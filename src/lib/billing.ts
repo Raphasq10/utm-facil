@@ -1,6 +1,9 @@
 import { PLAN_CONFIGS, type PlanTier } from '@/types/billing'
 import { hotmartWebhookSchema, isValidCheckoutUrl } from './validations/billing'
 
+// Portal oficial do comprador/assinante da Hotmart (gerenciamento de cartão, faturas e cancelamento)
+export const HOTMART_CONSUMER_PORTAL_URL = 'https://consumer.hotmart.com'
+
 // Token padrão de segurança do webhook da Hotmart para verificação
 const EXPECTED_HOTMART_TOKEN = import.meta.env.HOTMART_WEBHOOK_TOKEN || 'campanhautm_hotmart_secret_token_2026'
 
