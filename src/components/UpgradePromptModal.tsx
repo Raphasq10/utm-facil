@@ -75,7 +75,7 @@ export const UpgradePromptModal: React.FC<UpgradePromptModalProps> = ({
         <div className="my-3 p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-xl text-left space-y-1.5 text-xs text-emerald-800 dark:text-emerald-300">
           <div className="flex items-center gap-2 font-semibold">
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Vantagens do Plano Pro (R$ 47/mês):</span>
+            <span>Vantagens do Plano Pro (R$ 6,99/mês):</span>
           </div>
           <ul className="list-disc list-inside space-y-1 text-zinc-600 dark:text-zinc-300 pl-1">
             <li>Até 10 Projetos / Clientes simultâneos</li>

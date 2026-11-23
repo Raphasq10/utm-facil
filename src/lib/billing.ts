@@ -4,6 +4,13 @@ import { hotmartWebhookSchema, isValidCheckoutUrl } from './validations/billing'
 // Portal oficial do comprador/assinante da Hotmart (gerenciamento de cartão, faturas e cancelamento)
 export const HOTMART_CONSUMER_PORTAL_URL = 'https://consumer.hotmart.com'
 
+// Formatador de preço em Real Brasileiro (ex: 6.99 -> "R$ 6,99", 127 -> "R$ 127")
+export function formatPlanPrice(price: number): string {
+  if (price === 0) return 'Grátis'
+  const hasDecimals = price % 1 !== 0
+  return `R$ ${hasDecimals ? price.toFixed(2).replace('.', ',') : price}`
+}
+
 // Token padrão de segurança do webhook da Hotmart para verificação
 const EXPECTED_HOTMART_TOKEN = import.meta.env.HOTMART_WEBHOOK_TOKEN || 'campanhautm_hotmart_secret_token_2026'
 

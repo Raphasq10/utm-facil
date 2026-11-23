@@ -177,7 +177,7 @@ export const LegalView: React.FC<LegalViewProps> = ({
                     </p>
                   </div>
                   <div className="p-4 rounded-xl bg-slate-950 border border-emerald-500/40 space-y-1">
-                    <span className="font-bold text-emerald-400 block">Plano Pro (R$ 47,00/mês)</span>
+                    <span className="font-bold text-emerald-400 block">Plano Pro (R$ 6,99/mês)</span>
                     <p className="text-xs text-slate-400">
                       Assinatura mensal recorrente com até 10 projetos simultâneos, links UTM ilimitados, exportação de Guia HTML offline autônomo e suporte prioritário.
                     </p>

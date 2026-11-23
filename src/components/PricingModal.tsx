@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { PLAN_CONFIGS, type PlanTier } from '@/types/billing'
 import { useAuth } from '@/contexts/AuthContext'
-import { buildHotmartCheckoutUrl, HOTMART_CONSUMER_PORTAL_URL } from '@/lib/billing'
+import { buildHotmartCheckoutUrl, HOTMART_CONSUMER_PORTAL_URL, formatPlanPrice } from '@/lib/billing'
 import { toast } from 'sonner'
 import {
   Check,
@@ -145,7 +145,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                           isAgencySoon ? 'filter blur-[5px] select-none pointer-events-none' : ''
                         }`}
                       >
-                        {plan.price === 0 ? 'Grátis' : `R$ ${plan.price}`}
+                        {formatPlanPrice(plan.price)}
                       </span>
                       {plan.price > 0 && (
                         <span
@@ -247,7 +247,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({
                     Assinatura Ativa
                   </span>
                   <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                    {PLAN_CONFIGS[currentPlan]?.name} (R$ {PLAN_CONFIGS[currentPlan]?.price}/{PLAN_CONFIGS[currentPlan]?.billingPeriod})
+                    {PLAN_CONFIGS[currentPlan]?.name} ({formatPlanPrice(PLAN_CONFIGS[currentPlan]?.price)}/{PLAN_CONFIGS[currentPlan]?.billingPeriod})
                   </span>
                 </div>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">

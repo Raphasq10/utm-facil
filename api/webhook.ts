@@ -33,8 +33,15 @@ export default async function handler(req: any, res: any) {
     const payload = req.body || {}
     console.log('[Hotmart Webhook] Payload recebido:', JSON.stringify(payload))
 
-    // Hotmart pode enviar como formato de URL encoded ou JSON
-    const body = typeof payload === 'string' ? JSON.parse(payload) : payload
+    // Hotmart pode enviar como JSON ou URL encoded (v1)
+    let body: any = payload
+    if (typeof payload === 'string') {
+      try {
+        body = JSON.parse(payload)
+      } catch {
+        body = Object.fromEntries(new URLSearchParams(payload))
+      }
+    }
 
     // Validação opcional de segurança do Hottok (se configurado na Vercel)
     const expectedToken = process.env.HOTMART_WEBHOOK_TOKEN
@@ -57,8 +64,11 @@ export default async function handler(req: any, res: any) {
     const buyerEmail =
       body.data?.buyer?.email ||
       body.data?.subscriber?.email ||
+      body.data?.subscription?.subscriber?.email ||
       body.buyer?.email ||
       body.subscriber?.email ||
+      body.buyer_email ||
+      body.subscriber_email ||
       body.email ||
       ''
 

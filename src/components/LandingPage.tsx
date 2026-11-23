@@ -656,7 +656,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <p className="text-xs text-slate-400 mb-6">Para gestores com múltiplos clientes em expansão.</p>
                 <div className="mb-6 pb-6 border-b border-slate-800">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold text-white">R$ 47</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 6,99</span>
                     <span className="text-xs text-slate-400">/mês</span>
                   </div>
                   <span className="text-xs text-emerald-400 block mt-1">Pix ou Cartão com Liberação Imediata</span>

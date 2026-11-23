@@ -38,7 +38,7 @@ export const PLAN_CONFIGS: Record<PlanTier, PlanDetails> = {
   pro: {
     id: 'pro',
     name: 'Plano Pro (Profissional)',
-    price: 47,
+    price: 6.99,
     billingPeriod: 'mês',
     description: 'Para gestores de tráfego e e-commerces em expansão.',
     features: [
